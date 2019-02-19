@@ -1,0 +1,10 @@
+# Fichier d'exportation de palette de couleurs généré par QGIS
+INTERPOLATION:INTERPOLATED
+0,195,255,42,255,null value
+1,187,83,58,255,background
+2,210,210,210,255,low clouds
+3,255,123,184,255,high clouds
+4,10,10,10,255,clouds shadows
+5,0,151,56,255,land
+6,0,142,208,255,water
+7,77,77,77,255,snow

@@ -1,0 +1,18 @@
+# Lines beginning with a # are ignored
+# class R G B
+# null value
+0 195 255 42
+# background
+1 187 83 58
+# low clouds
+2 210 210 210
+# high clouds
+3 255 123 184
+# clouds shadows
+4 10 10 10
+# land
+5 0 151 56
+# water
+6 0 142 208
+# snow
+7 77 77 77

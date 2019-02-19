@@ -1,0 +1,79 @@
+{
+   "classification": {
+      "method": "rf"
+   }, 
+   "color_tables": {
+      "otb": "otb_table.txt"
+   }, 
+   "general": {
+      "class_stats": "class_stats.xml", 
+      "img_labeled": "labeled_img.tif", 
+      "img_labeled_regularized": "labeled_img_regular.tif", 
+      "img_stats": "img_stats.xml", 
+      "merged_layers": "merged.shp", 
+      "no_data_mask": "no_data.shp", 
+      "training_samples_extracted": "training_samples_extracted.sqlite", 
+      "training_samples_location": "training_samples_location.sqlite", 
+      "training_sampling": "smallest", 
+      "training_shp": "train_points.shp", 
+      "training_shp_extended": "train_points_ext.shp", 
+      "validation_shp": "validation_points.shp", 
+      "validation_shp_extended": "validation_points_ext.shp"
+   }, 
+   "masks": {
+      "background": {
+         "class": "1", 
+         "shp": "background.shp"
+      }, 
+      "clouds_shadows": {
+         "class": "4", 
+         "shp": "clouds_shadows.shp"
+      }, 
+      "high_clouds": {
+         "class": "3", 
+         "shp": "high_clouds.shp"
+      }, 
+      "land": {
+         "class": "5", 
+         "shp": "land.shp"
+      }, 
+      "low_clouds": {
+         "class": "2", 
+         "shp": "low_clouds.shp"
+      }, 
+      "snow": {
+         "class": "7", 
+         "shp": "snow.shp"
+      }, 
+      "water": {
+         "class": "6", 
+         "shp": "water.shp"
+      }
+   }, 
+   "postprocessing": {
+      "binary_confusion_matrix": "bin_confusion_matrix.csv", 
+      "confusion_matrix": "confusion_matrix.csv", 
+      "model_metrics": "model_metrics.csv"
+   }, 
+   "preprocessing": {
+      "band_addition": [], 
+      "pan": false
+   }, 
+   "user_choices": {
+      "clear_date": "20170526", 
+      "current_date": "20170516", 
+      "location": "Orleans", 
+      "main_dir": "/mnt/data/home/baetensl/classification_clouds/Data/Orleans_20170516", 
+      "raw_img": "Orleans_bands.tif"
+   }, 
+   "visualization": {
+      "bands_selection": [
+         "ndvi", 
+         "default"
+      ], 
+      "method_selection": [
+         "kmeans2", 
+         "rf"
+      ]
+   }
+}

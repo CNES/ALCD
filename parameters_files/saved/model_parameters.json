@@ -1,0 +1,110 @@
+{    
+ "comments" : {
+	"-classifier":"             <string>         Classifier to use for the training [libsvm/boost/dt/gbt/ann/bayes/rf/knn] (mandatory, default value is libsvm)",
+        "-classifier.libsvm.k":"    <string>         SVM Kernel Type [linear/rbf/poly/sigmoid] (mandatory, default value is linear)",
+        "-classifier.libsvm.m":"    <string>         SVM Model Type [csvc/nusvc/oneclass] (mandatory, default value is csvc)",
+        "-classifier.libsvm.c":"    <float>          Cost parameter C  (mandatory, default value is 1)",
+        "-classifier.libsvm.opt":"  <boolean>        Parameters optimization  (optional, off by default)",
+        "-classifier.libsvm.prob":" <boolean>        Probability estimation  (optional, off by default)",
+        "-classifier.boost.t":"     <string>         Boost Type [discrete/real/logit/gentle] (mandatory, default value is real)",
+        "-classifier.boost.w":"     <int32>          Weak count  (mandatory, default value is 100)",
+        "-classifier.boost.r":"     <float>          Weight Trim Rate  (mandatory, default value is 0.95)",
+        "-classifier.boost.m":"     <int32>          Maximum depth of the tree  (mandatory, default value is 1)",
+        "-classifier.dt.max":"      <int32>          Maximum depth of the tree  (mandatory, default value is 65535)",
+        "-classifier.dt.min":"      <int32>          Minimum number of samples in each node  (mandatory, default value is 10)",
+        "-classifier.dt.ra":"       <float>          Termination criteria for regression tree  (mandatory, default value is 0.01)",
+        "-classifier.dt.cat":"      <int32>          Cluster possible values of a categorical variable into K <= cat clusters to find a suboptimal split  (mandatory, default value is 10)",
+        "-classifier.dt.f":"        <int32>          K-fold cross-validations  (mandatory, default value is 10)",
+        "-classifier.dt.r":"        <boolean>        Set Use1seRule flag to false  (optional, off by default)",
+        "-classifier.dt.t":"        <boolean>        Set TruncatePrunedTree flag to false  (optional, off by default)",
+        "-classifier.gbt.w":"       <int32>          Number of boosting algorithm iterations  (mandatory, default value is 200)",
+        "-classifier.gbt.s":"       <float>          Regularization parameter  (mandatory, default value is 0.01)",
+        "-classifier.gbt.p":"       <float>          Portion of the whole training set used for each algorithm iteration  (mandatory, default value is 0.8)",
+        "-classifier.gbt.max":"     <int32>          Maximum depth of the tree  (mandatory, default value is 3)",
+        "-classifier.ann.t":"       <string>         Train Method Type [reg/back] (mandatory, default value is reg)",
+        "-classifier.ann.sizes":"   <string list>    Number of neurons in each intermediate layer  (mandatory)",
+        "-classifier.ann.f":"       <string>         Neuron activation function type [ident/sig/gau] (mandatory, default value is sig)",
+        "-classifier.ann.a":"       <float>          Alpha parameter of the activation function  (mandatory, default value is 1)",
+        "-classifier.ann.b":"       <float>          Beta parameter of the activation function  (mandatory, default value is 1)",
+        "-classifier.ann.bpdw":"    <float>          Strength of the weight gradient term in the BACKPROP method  (mandatory, default value is 0.1)",
+        "-classifier.ann.bpms":"    <float>          Strength of the momentum term (the difference between weights on the 2 previous iterations)  (mandatory, default value is 0.1)",
+        "-classifier.ann.rdw":"     <float>          Initial value Delta_0 of update-values Delta_{ij} in RPROP method  (mandatory, default value is 0.1)",
+        "-classifier.ann.rdwm":"    <float>          Update-values lower limit Delta_{min} in RPROP method  (mandatory, default value is 1e-07)",
+        "-classifier.ann.term":"    <string>         Termination criteria [iter/eps/all] (mandatory, default value is all)",
+        "-classifier.ann.eps":"     <float>          Epsilon value used in the Termination criteria  (mandatory, default value is 0.01)",
+        "-classifier.ann.iter":"    <int32>          Maximum number of iterations used in the Termination criteria  (mandatory, default value is 1000)",
+        "-classifier.rf.max":"      <int32>          Maximum depth of the tree  (mandatory, default value is 5)",
+        "-classifier.rf.min":"      <int32>          Minimum number of samples in each node  (mandatory, default value is 10)",
+        "-classifier.rf.ra":"       <float>          Termination Criteria for regression tree  (mandatory, default value is 0)",
+        "-classifier.rf.cat":"      <int32>          Cluster possible values of a categorical variable into K <= cat clusters to find a suboptimal split  (mandatory, default value is 10)",
+        "-classifier.rf.var":"      <int32>          Size of the randomly selected subset of features at each tree node  (mandatory, default value is 0)",
+        "-classifier.rf.nbtrees":"  <int32>          Maximum number of trees in the forest  (mandatory, default value is 100)",
+        "-classifier.rf.acc":"      <float>          Sufficient accuracy (OOB error)  (mandatory, default value is 0.01)",
+        "-classifier.knn.k":"       <int32>          Number of Neighbors  (mandatory, default value is 32)"
+
+
+},
+
+   	"libsvm" : {
+		"k":"linear",
+		"m" : "csvc",
+		"c" : "1",
+		"opt" : "false",
+		"prob" : "false"
+	},
+
+   	"boost" : {
+		"t":"real",
+		"w" : "100",
+		"r" : "0.95",
+		"m" : "1"
+	},
+
+   	"dt" : {
+		"max":"65535",
+		"min" : "10",
+		"ra" : "0.01",
+		"cat" : "10",
+		"f" : "10",
+		"r" : "false",
+		"t" : "false"
+	},
+
+   	"gbt" : {
+		"w":"200",
+		"s" : "0.01",
+		"p" : "0.8",
+		"max" : "3"
+	},
+
+   	"ann" : {
+		"t":"reg",
+		"sizes" : "20",
+		"f":"sig",
+		"a" : "1",
+		"b" : "1",
+		"bpdw":"0.1",
+		"bpms" : "0.1",
+		"rdw":"0.1",
+		"rdwm" : "1e-07",
+		"term" : "all",
+		"eps" : "0.01",
+		"iter" : "1000"
+	},
+	
+   	"rf" : {
+		"max":"5",
+		"min" : "10",
+		"ra":"0",
+		"cat" : "10",
+		"var" : "0",
+		"nbtrees":"100",
+		"acc" : "0.01"
+	},
+
+   	"knn" : {
+		"k":"32"
+	}
+
+
+}
