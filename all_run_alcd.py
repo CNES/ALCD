@@ -27,16 +27,13 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 
 
-import sys
 import os
 import os.path as op
 import json
 import shutil
 import argparse
 import tempfile
-import glob
 
-import OTB_workflow
 import masks_preprocessing
 import layers_creation
 import L1C_band_composition
@@ -133,26 +130,31 @@ def invitation_to_copy(global_parameters, first_iteration=False):
                                                          source=source_dir, destination=dest_dir))
 
 
-def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
+def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_date=None, unique_image=False, k_fold_step=None, k_fold_dir=None, force=False):
     if part == 1:
         # Define the main parameters for the algorithm
         # If all is filled, will update the JSON file
-        if location != None and wanted_date != None and clear_date != None:
+        if location != None and wanted_date != None and (clear_date != None or unique_image == True):
             paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
             Data_PCC_dir = paths_configuration["data_paths"]["data_pcc"]
             Data_ALCD_dir = paths_configuration["data_paths"]["data_alcd"]
 
             tile = paths_configuration["tile_location"][location]
 
-            if find_directory_names.is_valid_date(location, wanted_date):
-                current_date = wanted_date
-            else:
-                print('Error: please enter a valid wanted date')
-                raise NameError('Invalid wanted date')
+            if unique_image != True:
+                if find_directory_names.is_valid_date(location, wanted_date):
+                    current_date = wanted_date
+                else:
+                    print('Error: please enter a valid wanted date')
+                    raise NameError('Invalid wanted date')
 
-            if not find_directory_names.is_valid_date(location, clear_date):
-                print('Error: please enter a valid cloud free date')
-                raise NameError('Invalid cloud free date')
+                if not find_directory_names.is_valid_date(location, clear_date):
+                    print('Error: please enter a valid cloud free date')
+                    raise NameError('Invalid cloud free date')
+            else:
+                current_date = wanted_date
+                clear_date = wanted_date
+
             main_dir = op.join(Data_ALCD_dir, (location + '_' + tile + '_' + current_date))
             raw_img_name = location + "_bands.tif"
 
@@ -166,7 +168,7 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
 
             if first_iteration == True:
                 # Create the directories
-                OTB_workflow.create_directories(global_parameters)
+                OTB_wf.create_directories(global_parameters)
 
                 # Copy the global_parameters files to save it
                 src = op.join('parameters_files', 'global_parameters.json')
@@ -174,9 +176,14 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
                               ["main_dir"], 'In_data', 'used_global_parameters.json')
                 shutil.copyfile(src, dst)
 
+                if unique_image != True:
+                    heavy = True
+                else:
+                    heavy = False
+
                 # Create the images .tif and .jp2, i.e. the features
                 L1C_band_composition.create_image_compositions(
-                    global_parameters, location, current_date, heavy=True, force=force)
+                    global_parameters, location, current_date, unique_image, heavy, force=force)
 
                 # Create the empty layers
                 layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
@@ -216,19 +223,22 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
         # Train the model and classify the image
         OTB_wf.train_model(global_parameters, shell=False, proceed=True)
         additional_name = ''
-        OTB_wf.image_classification(global_parameters, shell=False,
+        appClassif = OTB_wf.image_classification(global_parameters, shell=False,
                                     proceed=True, additional_name=additional_name)
-        OTB_wf.confidence_map_viz(global_parameters, additional_name=additional_name)
+        if str2bool(global_parameters["postprocessing"]["confidence_map"]):
+            OTB_wf.confidence_map_viz(global_parameters, appClassif.GetParameterOutputImage("confmap"),
+                                      additional_name=additional_name)
         # regularization_radius in pixel
         regularization_radius = int(
             global_parameters["training_parameters"]["regularization_radius"])
         OTB_wf.classification_regularization(
-            global_parameters, proceed=True, radius=regularization_radius)
+            global_parameters, appClassif.GetParameterOutputImage("out"), proceed=True, radius=regularization_radius)
 
     elif part == 5:
         # Compute some metrics
         OTB_wf.compute_mat_conf(global_parameters)
-        OTB_wf.fancy_classif_viz(global_parameters, proceed=True)
+        if unique_image != True:
+            OTB_wf.fancy_classif_viz(global_parameters, proceed=True)
         try:
             confidence_map_exploitation.compute_all_confidence_stats(global_parameters)
             confidence_map_exploitation.plot_confidence_evolution(global_parameters)
@@ -241,7 +251,8 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
 
     elif part == 6:
         # Create the contours for a better visualisation
-        OTB_wf.create_contour_from_labeled(global_parameters, proceed=True)
+        if unique_image != True:
+            OTB_wf.create_contour_from_labeled(global_parameters, proceed=True)
 
 
 def str2bool(v):
@@ -269,7 +280,9 @@ def main():
     parser.add_argument('-d', action='store', default=None, dest='wanted_date',
                         help='Date, The desired date to process (e.g. 20170702)')
     parser.add_argument('-c', action='store', default=None, dest='clear_date',
-                        help='Date, The nearest clear date (e.g. 20170704)')
+                        help = 'Date, The nearest clear date (e.g. 20170704)')
+    parser.add_argument('-u', action='store', default='false',
+                        dest='unique_image',help='Bool, Only one image processed')
     parser.add_argument('-dates', action='store', default='false',
                         dest='get_dates', help='Bool, Get the available dates')
     parser.add_argument('-kfold', action='store', default='false',
@@ -301,6 +314,7 @@ def main():
 
     wanted_date = results.wanted_date
     clear_date = results.clear_date
+    unique_image = str2bool(results.unique_image)
 
     force = str2bool(results.force)
 
@@ -345,7 +359,7 @@ def main():
 
     if user_input == 0:
         run_all(part=1, first_iteration=first_iteration, location=location,
-                wanted_date=wanted_date, clear_date=clear_date, force=force)
+                wanted_date=wanted_date, clear_date=clear_date, unique_image=unique_image, force=force)
     elif user_input == 1:
         run_all(part=2, first_iteration=first_iteration, force=force)
         run_all(part=3, first_iteration=first_iteration, force=force)

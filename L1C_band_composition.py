@@ -27,6 +27,8 @@ import os
 import os.path as op
 import otbApplication
 import find_directory_names
+from osgeo import gdal
+from osgeo.gdalconst import GA_ReadOnly
 import glob
 import json
 import shutil
@@ -113,6 +115,26 @@ def create_specific_indices(in_bands_dir, out_tif, indice_name, resolution=60):
 
     else:
         print('Please enter a valid indice name')
+
+
+def create_rgb(bands_dir):
+    '''
+    Create a true color vrt.
+    '''
+    band1 = glob.glob(op.join(bands_dir, '*04.tif'))[0]
+    band2 = glob.glob(op.join(bands_dir, '*03.tif'))[0]
+    band3 = glob.glob(op.join(bands_dir, '*02.tif'))[0]
+    files_list = [band1, band2, band3]
+
+    list_in_vrt = ''
+    for file_to_add in files_list:
+        list_in_vrt = list_in_vrt + ' ' + file_to_add
+
+    out_file = op.join(bands_dir, 'RGB.vrt')
+
+    # Create the VRT
+    build_vrt = 'gdalbuildvrt {} -separate {}'.format(out_file, list_in_vrt)
+    os.system(build_vrt)
 
 
 def create_time_difference_band(global_parameters, band_num, out_tif, resolution=60):
@@ -283,6 +305,41 @@ def dtm_addition(location, out_band, resolution=60):
     shutil.copy(resized_DTM_path, out_band)
 
 
+def slope_addition(global_parameters, resolution=10):
+    '''
+    Resample the slope if not in the required resolution.
+    '''
+
+    # Check resolution
+    in_slope = global_parameters["user_choices"]["slope"]
+
+    dataset = gdal.Open(str(in_slope), GA_ReadOnly)
+    if dataset is None:
+        raise Exception("Error reading gis file {}".format(in_slope))
+
+    # Geographic information
+    geotransform = dataset.GetGeoTransform()
+    if geotransform is not None:
+        pixel_size = (geotransform[1], geotransform[5])
+        print "     Pixel size :", pixel_size
+        print "     Resolution :", resolution
+
+    # The slope is resized if the slope resoltion is
+    # not the expected one.
+    if int(pixel_size[0]) != int(resolution):
+
+        print "     Slope to resize from :", pixel_size[0], "to", resolution
+        out_dir = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
+        out_slope = op.join(out_dir, op.basename(in_slope).split('.')[0]) + '_resample.' + \
+                        op.basename(in_slope).split('.')[1]
+
+        resize_band(in_slope, out_slope, resolution, resolution)
+    else :
+        out_slope = in_slope
+
+    return out_slope
+
+
 def resize_band(in_band, out_band, pixelresX, pixelresY):
     '''
     Resize a band with the given resolution (in meters)
@@ -293,7 +350,7 @@ def resize_band(in_band, out_band, pixelresX, pixelresY):
     os.system(build_warp)
 
 
-def create_image_compositions(global_parameters, location, current_date, heavy=False, force=False):
+def create_image_compositions(global_parameters, location, current_date, unique_image, heavy=False, force=False):
     #
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                   'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
@@ -308,7 +365,7 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
     # --------------------------------------------
     # ------ Low resolution TIF with all the bands
     # Preparation
-    resolution = 60
+    resolution = global_parameters["features"]["resolution"]
     out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
 
     additional_bands = []
@@ -319,9 +376,11 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
         out_tif = op.join(out_dir_bands, (indice + '.tif'))
         create_specific_indices(bands_dir, out_tif, indice_name=indice, resolution=resolution)
         additional_bands.append(str(out_tif))
+        # Create VRT
+        create_vrt(out_tif)
 
     # Create the ratios
-    ratios = create_ratio_bands(global_parameters, bands_dir, out_dir_bands, resolution=60)
+    ratios = create_ratio_bands(global_parameters, bands_dir, out_dir_bands, resolution=resolution)
     additional_bands.extend(ratios)
 
     use_DTM = str2bool(global_parameters["features"]["DTM"])
@@ -335,6 +394,16 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
             additional_bands.append(str(out_dtm))
         except:
             print('ERROR : THE DTM DOES NOT EXIST !!!')
+
+    use_slope = str2bool(global_parameters["features"]["slope"])
+
+    if use_slope:
+        # Append the slope
+        try:
+            slope_file = slope_addition(global_parameters, resolution=resolution)
+            additional_bands.append(str(slope_file))
+        except:
+            print('ERROR : THE SLOPE FILE DOES NOT EXIST !!!')
 
     create_textures = str2bool(global_parameters["features"]["textures"])
     # Create the texture features
@@ -352,12 +421,13 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
         additional_bands.append(str(out_tif))
 
     # Create time difference features
-    bands_num = [int(band) for band in global_parameters["features"]["time_difference_bands"]]
-    out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
-    for band_num in bands_num:
-        out_tif = op.join(out_dir_bands, ('time_' + str(band_num) + '.tif'))
-        create_time_difference_band(global_parameters, band_num, out_tif, resolution=resolution)
-        additional_bands.append(str(out_tif))
+    if unique_image != True:
+        bands_num = [int(band) for band in global_parameters["features"]["time_difference_bands"]]
+        out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
+        for band_num in bands_num:
+            out_tif = op.join(out_dir_bands, ('time_' + str(band_num) + '.tif'))
+            create_time_difference_band(global_parameters, band_num, out_tif, resolution=resolution)
+            additional_bands.append(str(out_tif))
 
     # --- Create the main TIF with low resolution
     # create intermediate resolution files
@@ -385,6 +455,9 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
 
     # create the concatenated TIF
     compose_bands_heavy(intermediate_sizes_paths, str(out_all_bands_tif))
+
+    # Create a true color vrt
+    create_rgb(intermediate_bands_dir)
 
     # --------------------------------------------
     # ---- High resolution TIF with some bands only
@@ -436,27 +509,38 @@ def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
     '''
     location = global_parameters["user_choices"]["location"]
     current_date = global_parameters["user_choices"]["current_date"]
-    clear_date = global_parameters["user_choices"]["clear_date"]
-
-    current_dir, current_band_prefix, current_date = find_directory_names.get_L1C_dir(
-        location, current_date, display=False)
-    clear_dir, clear_band_prefix, clear_date = find_directory_names.get_L1C_dir(
-        location, clear_date, display=False)
+    unique_image = global_parameters["user_choices"]["unique_image"]
 
     # Band number, the 1 is 20m resolution, change it if
     # other resolution is wanted
     band_num_str = '{:02d}'.format(1)
 
+    current_dir, current_band_prefix, current_date = find_directory_names.get_L1C_dir(
+        location, current_date, display=False)
     cloudy_band = glob.glob(op.join(current_dir, (current_band_prefix + band_num_str + '.jp2')))[0]
-    clear_band = glob.glob(op.join(clear_dir, (clear_band_prefix + band_num_str + '.jp2')))[0]
 
-    # Selection of the no_data pixels
-    BandMathX = otbApplication.Registry.CreateApplication("BandMathX")
-    BandMathX.SetParameterStringList("il", [str(cloudy_band), str(clear_band)])
-    expression = "(im1b1 <= 0 or im2b1 <= 0) ? 1 : 0"
-    BandMathX.SetParameterString("exp", expression)
-    BandMathX.UpdateParameters()
-    BandMathX.Execute()
+    if unique_image != True:
+        clear_date = global_parameters["user_choices"]["clear_date"]
+        clear_dir, clear_band_prefix, clear_date = find_directory_names.get_L1C_dir(
+            location, clear_date, display=False)
+        clear_band = glob.glob(op.join(clear_dir, (clear_band_prefix + band_num_str + '.jp2')))[0]
+
+        # Selection of the no_data pixels
+        BandMathX = otbApplication.Registry.CreateApplication("BandMathX")
+        BandMathX.SetParameterStringList("il", [str(cloudy_band), str(clear_band)])
+        expression = "(im1b1 <= 0 or im2b1 <= 0) ? 1 : 0"
+        BandMathX.SetParameterString("exp", expression)
+        BandMathX.UpdateParameters()
+        BandMathX.Execute()
+    else:
+        # Selection of the no_data pixels
+        BandMathX = otbApplication.Registry.CreateApplication("BandMathX")
+        BandMathX.SetParameterStringList("il", [str(cloudy_band)])
+        expression = "(im1b1 <= 0) ? 1 : 0"
+        BandMathX.SetParameterString("exp", expression)
+        BandMathX.UpdateParameters()
+        BandMathX.Execute()
+
     # Dilatation of the zones, to have some margin. radius in pixels
     Dilatation = otbApplication.Registry.CreateApplication("BinaryMorphologicalOperation")
     Dilatation.SetParameterInputImage("in", BandMathX.GetParameterOutputImage("out"))
@@ -466,6 +550,41 @@ def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
     Dilatation.SetParameterInt("structype.ball.yradius", dilation_radius)
     Dilatation.UpdateParameters()
     Dilatation.ExecuteAndWriteOutput()
+
+
+def create_vrt_files(global_parameters):
+    '''
+    Creation of VRT files NDVI, NDWI.
+    '''
+
+    in_file = global_parameters["user_choices"]["raw_img"]
+
+    out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
+    temp_split_bands =  op.join(out_dir_bands, global_parameters["vrt"]["temporary_file"])
+
+    # Split input multibands image in one tif per band
+    SplitImage = otbApplication.Registry.CreateApplication("SplitImage")
+    SplitImage.SetParameterString("in", str(in_file))
+    SplitImage.SetParameterString("out", str(temp_split_bands))
+    SplitImage.UpdateParameters()
+    SplitImage.ExecuteAndWriteOutput()
+
+    list_vrt_type = ["ndvi", "ndwi"]
+
+    # Create the vrt files
+    for vrt_type in list_vrt_type:
+        if (global_parameters["vrt"][vrt_type]):
+            bands_num_rgb = [int(band) for band in global_parameters["vrt"][vrt_type]]
+            create_vrt(bands_num_rgb,temp_split_bands, vrt_type)
+
+
+def create_vrt(in_file):
+    """
+    Creation of a VRT file.
+    """
+    vrt_file = in_file.split(".")[0] + ".vrt"
+    build_vrt = 'gdalbuildvrt {} {}'.format(vrt_file, in_file)
+    os.system(build_vrt)
 
 
 def str2bool(v):
@@ -484,12 +603,13 @@ def main():
     global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
 
     out_tif = 'tmp/tmp_tif.tif'
+
     create_no_data_tif(global_parameters, out_tif, resolution=60)
 
     current_date = '20170520'
     location = 'Pretoria'
 
-    create_image_compositions(global_parameters, location, current_date, heavy=False)
+    create_image_compositions(global_parameters, location, current_date, unique_image, heavy=False)
     return
 
 

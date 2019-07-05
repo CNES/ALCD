@@ -72,10 +72,14 @@ def split_and_augment(global_parameters, k_fold_step=None, k_fold_dir=None):
     max_dist_X = float(global_parameters["training_parameters"]["expansion_distance"])
     max_dist_Y = float(global_parameters["training_parameters"]["expansion_distance"])
 
+    half_res_X = float(global_parameters["features"]["resolution"])/2.0
+    half_res_Y = float(global_parameters["features"]["resolution"])/2.0
+
     # the employed method is the squares one
-    expand_point_region.create_squares(training_shp, training_shp_extended, max_dist_X, max_dist_Y)
     expand_point_region.create_squares(
-        validation_shp, validation_shp_extended, max_dist_X, max_dist_Y)
+        training_shp, training_shp_extended, max_dist_X, max_dist_Y, half_res_X, half_res_Y)
+    expand_point_region.create_squares(
+        validation_shp, validation_shp_extended, max_dist_X, max_dist_Y, half_res_X, half_res_Y)
 
 
 def load_kfold(train_shp, validation_shp, k_fold_step, k_fold_dir):
@@ -146,17 +150,19 @@ def masks_preprocess(global_parameters, k_fold_step=None, k_fold_dir=None):
 
     layers_to_merge = []
     layers_classes = []
+    layers_expand = []
 
     # append the classes names and numbers
     for mask_name, mask_values in global_parameters["masks"].iteritems():
         layers_to_merge.append(op.join(main_dir, 'In_data', 'Masks', mask_values["shp"]))
         layers_classes.append(mask_values["class"])
+        layers_expand.append(mask_values["expand"])
 
     merged_layers = op.join(main_dir, 'Intermediate', global_parameters["general"]["merged_layers"])
 
     print('  Merge the classes shapefiles into one')
     merge_shapefiles.merge_shapefiles(in_shp_list=layers_to_merge,
-                                      class_list=layers_classes, out_shp=merged_layers)
+                                      class_list=layers_classes, expand_list = layers_expand, out_shp=merged_layers)
     print('Done')
 
     if k_fold_step != None and k_fold_dir != None:
