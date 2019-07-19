@@ -282,7 +282,7 @@ def dtm_addition(location, out_band, resolution=60):
     Create the adapted Digital Terrain Model
     From the original one, change its resolution
     '''
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
     tile = paths_configuration["tile_location"][location]
 
     original_DTM_dir = paths_configuration["global_chains_paths"]["DTM_input"]
