@@ -125,7 +125,7 @@
    "user_choices": {
       "clear_date": "20170112",
       "current_date": "20170102",
-      "unique_date": "False",
+      "unique_image": "False",
       "location": "Marrakech",
       "main_dir": "/mnt/data/SENTINEL2/ALCD/ALCD/Marrakech_29RPQ_20170102",
       "raw_img": "Marrakech_bands.tif",
