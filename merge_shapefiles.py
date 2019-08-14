@@ -27,9 +27,10 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 import os
 import os.path as op
 import ogr
+from distutils.util import strtobool
 
 
-def merge_shapefiles(in_shp_list, class_list, out_shp):
+def merge_shapefiles(in_shp_list, class_list, expand_list, out_shp):
     ''' 
     Create a merged shapefile
     The class_list should be in the same order than the in_shp_list 
@@ -38,6 +39,7 @@ def merge_shapefiles(in_shp_list, class_list, out_shp):
     for k in range(len(in_shp_list)):
         in_shp = in_shp_list[k]
         current_class = class_list[k]
+        expand_class = expand_list[k]
 
         inDriver = ogr.GetDriverByName("ESRI Shapefile")
         inDataSource = inDriver.Open(in_shp, 0)
@@ -60,6 +62,11 @@ def merge_shapefiles(in_shp_list, class_list, out_shp):
             classField = ogr.FieldDefn("class", ogr.OFTInteger)
             outLayer.CreateField(classField)
 
+            # Add an expand field
+            expandField = ogr.FieldDefn("expand", ogr.OFTInteger)
+            expandField.SetSubType(ogr.OFSTBoolean)
+            outLayer.CreateField(expandField)
+
         # Create the feature and set values
         for point in inLayer:
             ingeom = point.GetGeometryRef()
@@ -68,6 +75,7 @@ def merge_shapefiles(in_shp_list, class_list, out_shp):
             feature = ogr.Feature(featureDefn)
             feature.SetGeometry(ingeom)
             feature.SetField("class", current_class)
+            feature.SetField("expand", strtobool(expand_class))
             outLayer.CreateFeature(feature)
 
         # Close DataSource

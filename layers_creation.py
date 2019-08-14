@@ -66,6 +66,11 @@ def empty_shapefile_creation(in_tif, out_shp_list, geometry_type='point'):
         classField = ogr.FieldDefn("class", ogr.OFTInteger)
         outLayer.CreateField(classField)
 
+        # Add an expand field
+        expandField = ogr.FieldDefn("expand", ogr.OFTInteger)
+        expandField.SetSubType(ogr.OFSTBoolean)
+        outLayer.CreateField(expandField)
+
         # Close DataSource
         outDataSource.Destroy()
 

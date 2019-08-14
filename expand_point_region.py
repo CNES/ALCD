@@ -32,7 +32,48 @@ import ogr
 import numpy as np
 
 
-def create_squares(in_shp, out_shp, max_dist_X, max_dist_Y):
+def compute_polygon(point, dist_X, dist_Y, out_layer):
+    '''
+    For each point, a square is computed from dist_X
+    and dist_Y in each direction.
+    '''
+
+    ingeom = point.GetGeometryRef()
+
+    Xpoint = ingeom.GetX(0)
+    Ypoint = ingeom.GetY(0)
+
+    # definition of the square sides
+    left = Xpoint-dist_X
+    right = Xpoint + dist_X
+    top = Ypoint+dist_Y
+    bottom = Ypoint-dist_Y
+
+    border = ogr.Geometry(ogr.wkbLinearRing)
+    # 4 corners, needs to be closed with the 5th point
+    border.AddPoint(left, top)
+    border.AddPoint(right, top)
+    border.AddPoint(right, bottom)
+    border.AddPoint(left, bottom)
+    border.AddPoint(left, top)
+
+    # create the polygon
+    poly = ogr.Geometry(ogr.wkbPolygon)
+    poly.AddGeometry(border)
+
+    # assign the class and expand status
+    featureDefn = out_layer.GetLayerDefn()
+    feature = ogr.Feature(featureDefn)
+    feature.SetGeometry(poly)
+
+    current_class = point.GetField("class")
+    feature.SetField("class", current_class)
+    expand_status = point.GetField("expand")
+    feature.SetField("expand", expand_status)
+    out_layer.CreateFeature(feature)
+
+
+def create_squares(in_shp, out_shp, max_dist_X, max_dist_Y, half_res_X, half_res_Y):
     ''' 
     Create a neighbourhoud around all the points in a shapefile
     For each point, a square around it is created, from -max_dist to +max_dist
@@ -68,39 +109,22 @@ def create_squares(in_shp, out_shp, max_dist_X, max_dist_Y):
     outLayer.CreateField(classField)
     print('{} squares will be created'.format(len(inLayer)))
 
+    # Add an expand field
+    expandField = ogr.FieldDefn("expand", ogr.OFTInteger)
+    expandField.SetSubType(ogr.OFSTBoolean)
+    outLayer.CreateField(expandField)
+
     # Create the feature and set values
     for point in inLayer:
         current_class = point.GetField("class")
-        if current_class != None:
-            ingeom = point.GetGeometryRef()
+        expand_status = point.GetField("expand")
 
-            Xpoint = ingeom.GetX(0)
-            Ypoint = ingeom.GetY(0)
+        if current_class != None and expand_status == True:
+            compute_polygon(point, max_dist_X, max_dist_Y, outLayer)
 
-            # definition of the square sides
-            left = Xpoint-max_dist_X
-            right = Xpoint + max_dist_X
-            top = Ypoint+max_dist_Y
-            bottom = Ypoint-max_dist_Y
-
-            border = ogr.Geometry(ogr.wkbLinearRing)
-            # 4 corners, needs to be closed with the 5th point
-            border.AddPoint(left, top)
-            border.AddPoint(right, top)
-            border.AddPoint(right, bottom)
-            border.AddPoint(left, bottom)
-            border.AddPoint(left, top)
-
-            # create the polygon
-            poly = ogr.Geometry(ogr.wkbPolygon)
-            poly.AddGeometry(border)
-
-            # assign the class
-            featureDefn = outLayer.GetLayerDefn()
-            feature = ogr.Feature(featureDefn)
-            feature.SetGeometry(poly)
-            feature.SetField("class", current_class)
-            outLayer.CreateFeature(feature)
+        # Add points with no expand computed
+        elif current_class != None and expand_status == False:
+            compute_polygon(point, half_res_X, half_res_Y, outLayer)
 
     # Close DataSource
     inDataSource.Destroy()

@@ -22,6 +22,8 @@
          "12"
       ], 
       "ratios": [], 
+      "resolution": "60",
+      "slope": "False",
       "special_indices": [
          "NDVI", 
          "NDWI"
@@ -62,37 +64,55 @@
    }, 
    "masks": {
       "background": {
-         "class": "1", 
+         "class": "1",
+         "expand": "True",
          "shp": "background.shp"
       }, 
       "clouds_shadows": {
-         "class": "4", 
+         "class": "4",
+         "expand": "True",
          "shp": "clouds_shadows.shp"
       }, 
       "high_clouds": {
-         "class": "3", 
+         "class": "3",
+         "expand": "True",
          "shp": "high_clouds.shp"
       }, 
       "land": {
-         "class": "5", 
+         "class": "5",
+         "expand": "True",
          "shp": "land.shp"
-      }, 
+      },
+      "land_1pixel": {
+         "class": "5",
+         "expand": "False",
+         "shp": "land_1pixel.shp"
+      },
       "low_clouds": {
-         "class": "2", 
+         "class": "2",
+         "expand": "True",
          "shp": "low_clouds.shp"
       }, 
       "snow": {
-         "class": "7", 
+         "class": "7",
+         "expand": "True",
          "shp": "snow.shp"
       }, 
       "water": {
-         "class": "6", 
+         "class": "6",
+         "expand": "True",
          "shp": "water.shp"
+      },
+      "water_1pixel": {
+         "class": "6",
+         "expand": "False",
+         "shp": "water_1pixel.shp"
       }
    }, 
    "postprocessing": {
       "binary_confusion_matrix": "bin_confusion_matrix.csv", 
       "confusion_matrix": "confusion_matrix.csv", 
+      "confidence_map": "True",
       "model_metrics": "model_metrics.csv"
    }, 
    "training_parameters": {
@@ -105,6 +125,7 @@
    "user_choices": {
       "clear_date": "20160427", 
       "current_date": "20160417", 
+      "unique_image": "False",
       "location": "Marrakech", 
       "main_dir": "/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Marrakech_29RPQ_20160417", 
       "raw_img": "Marrakech_bands.tif", 

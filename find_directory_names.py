@@ -38,7 +38,7 @@ def get_all_dates(location):
     ''' 
     Get all dates for a given location
     '''
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
     L1C_dir = paths_configuration["global_chains_paths"]["L1C"]
 
     location_dir = op.join(L1C_dir, location)
@@ -107,7 +107,7 @@ def get_L1C_dir(location, wanted_date, display=True):
     Get the path of the L1C directory
     If the date is not valid, returns the closest one (after)
     '''
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
     L1C_dir = paths_configuration["global_chains_paths"]["L1C"]
     location_dir = op.join(L1C_dir, location)
 

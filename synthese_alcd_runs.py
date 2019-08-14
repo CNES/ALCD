@@ -199,7 +199,7 @@ def mean_confidence(confidence_tif):
 
 
 def main():
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
     global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
 
     locations = ['Arles', 'Orleans', 'Gobabeb', 'RailroadValley',

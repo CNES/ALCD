@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """
 Tool to generate reference cloud masks for validation of operational cloud masks.
 The elaboration is performed using an active learning procedure.
@@ -309,8 +310,13 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     if proceed == True:
         if shell == True:
             print("  Image Classification (shell)")
-            command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
-                raw_img, model, img_labeled, confidence_map, mask_tif)
+            if (global_parameters["postprocessing"]["confidence_map"] == "True"):
+                command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
+                    raw_img, model, img_labeled, confidence_map, mask_tif)
+            else:
+                command = 'otbcli_ImageClassifier -in {} -model {} -out {} -mask {}'.format(
+                    raw_img, model, img_labeled, mask_tif)
+
             subprocess.call(command, shell=True)
 
         else:
@@ -318,31 +324,30 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
             ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
             ImageClassifier.SetParameterString("in", str(raw_img))
             ImageClassifier.SetParameterString("model", str(model))
-            ImageClassifier.SetParameterString("out", str(img_labeled))
-            ImageClassifier.SetParameterString("confmap", str(confidence_map))
+            if (global_parameters["postprocessing"]["confidence_map"] == "True"):
+               ImageClassifier.SetParameterString("confmap", str(confidence_map))
             ImageClassifier.SetParameterString("mask", str(mask_tif))
             ImageClassifier.UpdateParameters()
-            ImageClassifier.ExecuteAndWriteOutput()
+            ImageClassifier.Execute()
 
         print('Done')
     else:
         print("Classification not done this time")
 
-    return img_labeled
+    return ImageClassifier
 
 
-def confidence_map_viz(global_parameters, additional_name=''):
+def confidence_map_viz(global_parameters, app_confidence_map, additional_name=''):
     '''
     6.5 Enhancement of the classification map
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
 
-    confidence_map_in = op.join(main_dir, 'Out', "confidence{}.tif".format(additional_name))
     confidence_map_out = op.join(
         main_dir, 'Out', "confidence{}_enhanced.tif".format(additional_name))
 
     confidence_map_exploitation.confidence_map_change(
-        confidence_map_in, confidence_map_out, median_radius=11)
+        app_confidence_map, confidence_map_out, median_radius=11)
 
     return
 # -------- 3. POST-PROCESSING ---------------------
@@ -414,14 +419,13 @@ def compute_mat_conf(global_parameters, show=True, proceed=True):
     return conf_matrix
 
 
-def classification_regularization(global_parameters, proceed=True, radius=2):
+def classification_regularization(global_parameters, img_labeled, proceed=True, radius=2):
     '''
     9. Regularization of the classification map
     '''
 
     main_dir = global_parameters["user_choices"]["main_dir"]
 
-    img_labeled = op.join(main_dir, 'Out', global_parameters["general"]["img_labeled"])
     img_regularized = op.join(
         main_dir, 'Out', global_parameters["general"]["img_labeled_regularized"])
 
@@ -429,7 +433,7 @@ def classification_regularization(global_parameters, proceed=True, radius=2):
         "ClassificationMapRegularization")
 
     # The following lines set all the application parameters:
-    ClassificationMapRegularization.SetParameterString("io.in", str(img_labeled))
+    ClassificationMapRegularization.SetParameterInputImage("io.in", img_labeled)
     ClassificationMapRegularization.SetParameterString("io.out", str(img_regularized))
     ClassificationMapRegularization.SetParameterInt("ip.radius", radius)
     ClassificationMapRegularization.EnableParameter("ip.suvbool")
