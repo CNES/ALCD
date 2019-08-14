@@ -43,7 +43,7 @@ import find_directory_names
 import confidence_map_exploitation
 
 
-def initialization_global_parameters(main_dir, raw_img_name, location, current_date, clear_date):
+def initialization_global_parameters(main_dir, raw_img_name, location, current_date, clear_date, unique_image):
     ''' To initialize the path and name in the JSON file
     Must be done at the very beggining
     '''
@@ -61,6 +61,7 @@ def initialization_global_parameters(main_dir, raw_img_name, location, current_d
     data["user_choices"]["clear_date"] = clear_date
     data["user_choices"]["location"] = location
     data["user_choices"]["tile"] = paths_configuration["tile_location"][location]
+    data["user_choices"]["unique_image"] = unique_image
 
     # Save our changes to JSON file
     jsonFile = open(json_path, "w+")
@@ -131,17 +132,18 @@ def invitation_to_copy(global_parameters, first_iteration=False):
 
 
 def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_date=None, unique_image=False, k_fold_step=None, k_fold_dir=None, force=False):
+
     if part == 1:
         # Define the main parameters for the algorithm
         # If all is filled, will update the JSON file
-        if location != None and wanted_date != None and (clear_date != None or unique_image == True):
+        if location != None and wanted_date != None and (clear_date != None or unique_image != None):
             paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
             Data_PCC_dir = paths_configuration["data_paths"]["data_pcc"]
             Data_ALCD_dir = paths_configuration["data_paths"]["data_alcd"]
 
             tile = paths_configuration["tile_location"][location]
 
-            if unique_image != True:
+            if not str2bool(unique_image):
                 if find_directory_names.is_valid_date(location, wanted_date):
                     current_date = wanted_date
                 else:
@@ -153,14 +155,14 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
                     raise NameError('Invalid cloud free date')
             else:
                 current_date = wanted_date
-                clear_date = wanted_date
+                clear_date = ""
 
             main_dir = op.join(Data_ALCD_dir, (location + '_' + tile + '_' + current_date))
             raw_img_name = location + "_bands.tif"
 
             # Initialize the parameters with them
             initialization_global_parameters(
-                main_dir, raw_img_name, location, current_date, clear_date)
+                main_dir, raw_img_name, location, current_date, clear_date, unique_image)
 
             # Load the parameters
             global_parameters = json.load(
@@ -176,7 +178,7 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
                               ["main_dir"], 'In_data', 'used_global_parameters.json')
                 shutil.copyfile(src, dst)
 
-                if unique_image != True:
+                if not str2bool(unique_image):
                     heavy = True
                 else:
                     heavy = False
@@ -225,6 +227,7 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
         additional_name = ''
         appClassif = OTB_wf.image_classification(global_parameters, shell=False,
                                     proceed=True, additional_name=additional_name)
+
         if str2bool(global_parameters["postprocessing"]["confidence_map"]):
             OTB_wf.confidence_map_viz(global_parameters, appClassif.GetParameterOutputImage("confmap"),
                                       additional_name=additional_name)
@@ -237,7 +240,8 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
     elif part == 5:
         # Compute some metrics
         OTB_wf.compute_mat_conf(global_parameters)
-        if unique_image != True:
+
+        if not str2bool(global_parameters["user_choices"]["unique_image"]):
             OTB_wf.fancy_classif_viz(global_parameters, proceed=True)
         try:
             confidence_map_exploitation.compute_all_confidence_stats(global_parameters)
@@ -251,7 +255,7 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
 
     elif part == 6:
         # Create the contours for a better visualisation
-        if unique_image != True:
+        if not str2bool(global_parameters["user_choices"]["unique_image"]):
             OTB_wf.create_contour_from_labeled(global_parameters, proceed=True)
 
 
@@ -314,7 +318,7 @@ def main():
 
     wanted_date = results.wanted_date
     clear_date = results.clear_date
-    unique_image = str2bool(results.unique_image)
+    unique_image = results.unique_image
 
     force = str2bool(results.force)
 

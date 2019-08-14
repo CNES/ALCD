@@ -421,7 +421,7 @@ def create_image_compositions(global_parameters, location, current_date, unique_
         additional_bands.append(str(out_tif))
 
     # Create time difference features
-    if unique_image != True:
+    if not str2bool(unique_image):
         bands_num = [int(band) for band in global_parameters["features"]["time_difference_bands"]]
         out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
         for band_num in bands_num:
@@ -519,7 +519,7 @@ def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
         location, current_date, display=False)
     cloudy_band = glob.glob(op.join(current_dir, (current_band_prefix + band_num_str + '.jp2')))[0]
 
-    if unique_image != True:
+    if not str2bool(unique_image):
         clear_date = global_parameters["user_choices"]["clear_date"]
         clear_dir, clear_band_prefix, clear_date = find_directory_names.get_L1C_dir(
             location, clear_date, display=False)
