@@ -1,6 +1,6 @@
 {
   "global_chains_paths": {
-    "L1C": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/run_alcd/inputs/s2_l1c",
+    "L1C": "/home/mp/nicolasg/hydro_ref/MERGE/test/input",
     "maja": "/mnt/data/SENTINEL2/L2A_MAJA",
     "sen2cor": "/mnt/data/SENTINEL2/L2A_SEN2COR",
     "fmask": "/mnt/data/home/baetensl/Programs/Fmask4_output",
@@ -9,7 +9,7 @@
     "DTM_resized": "/mnt/data/home/baetensl/DTM/resized"
   },
   "data_paths": {
-    "data_alcd": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/run_alcd/inputs/s2_l1c",
+    "data_alcd": "",
     "data_pcc": "/mnt/data/home/baetensl/clouds_detection_git/Data_PCC"
   },
   "tile_location": {
@@ -25,7 +25,6 @@
     "Gobabeb": "33KWP",
     "Mongu": "34LGJ",
     "Pretoria": "35JPM",
-    "Toulouse": "31TCJ",
     "RailroadValley": "11SPC",
     "29RPQ_20160417": "29RPQ",
     "32TMR_20160323": "32TMR",
