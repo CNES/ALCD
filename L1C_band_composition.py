@@ -260,7 +260,7 @@ def dtm_addition(location, out_band, resolution=60):
     Create the adapted Digital Terrain Model
     From the original one, change its resolution
     '''
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
     tile = paths_configuration["tile_location"][location]
 
     original_DTM_dir = paths_configuration["global_chains_paths"]["DTM_input"]
@@ -462,8 +462,9 @@ def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
     Dilatation.SetParameterInputImage("in", BandMathX.GetParameterOutputImage("out"))
     Dilatation.SetParameterString("out", str(out_tif))
     Dilatation.SetParameterString("filter", "dilate")
-    Dilatation.SetParameterInt("structype.ball.xradius", dilation_radius)
-    Dilatation.SetParameterInt("structype.ball.yradius", dilation_radius)
+    Dilatation.SetParameterString("structype", "ball")
+    Dilatation.SetParameterInt("xradius", dilation_radius)
+    Dilatation.SetParameterInt("yradius", dilation_radius)
     Dilatation.UpdateParameters()
     Dilatation.ExecuteAndWriteOutput()
 

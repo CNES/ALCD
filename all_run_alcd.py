@@ -50,7 +50,7 @@ def initialization_global_parameters(main_dir, raw_img_name, location, current_d
     ''' To initialize the path and name in the JSON file
     Must be done at the very beggining
     '''
-    paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
 
     json_path = op.join('parameters_files', 'global_parameters.json')
     jsonFile = open(json_path, "r")  # Open the JSON file for reading
@@ -138,12 +138,11 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
         # Define the main parameters for the algorithm
         # If all is filled, will update the JSON file
         if location != None and wanted_date != None and clear_date != None:
-            paths_configuration = json.load(open(op.join('..', 'paths_configuration.json')))
+            paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
             Data_PCC_dir = paths_configuration["data_paths"]["data_pcc"]
             Data_ALCD_dir = paths_configuration["data_paths"]["data_alcd"]
 
             tile = paths_configuration["tile_location"][location]
-
             if find_directory_names.is_valid_date(location, wanted_date):
                 current_date = wanted_date
             else:
