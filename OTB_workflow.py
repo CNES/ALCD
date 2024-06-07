@@ -73,7 +73,7 @@ def compute_image_stats(global_parameters, proceed=True):
     print("  Compute Images Statistics")
     ComputeImagesStatistics = otbApplication.Registry.CreateApplication("ComputeImagesStatistics")
     ComputeImagesStatistics.SetParameterStringList("il", [str(raw_img)])
-    ComputeImagesStatistics.SetParameterString("out", str(img_stats))
+    ComputeImagesStatistics.SetParameterString("out.xml", str(img_stats))
     ComputeImagesStatistics.ExecuteAndWriteOutput()
 
     print('Done')
@@ -85,7 +85,7 @@ def compute_samples_stats(global_parameters, proceed=True):
     '''
     1. Compute the samples stats
     '''
-    print "  Polygon Classes Statistics"
+    print( "  Polygon Classes Statistics")
 
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
@@ -98,7 +98,7 @@ def compute_samples_stats(global_parameters, proceed=True):
                           global_parameters["general"]["no_data_mask"])
     no_data_mask = no_data_shp[0:-4] + '.tif'
 
-    PolygonClassStatistics = otbApplication.Registry_CreateApplication("PolygonClassStatistics")
+    PolygonClassStatistics = otbApplication.Registry.CreateApplication("PolygonClassStatistics")
     PolygonClassStatistics.SetParameterString("in", str(raw_img))
     PolygonClassStatistics.SetParameterString("vec", str(training_shp))
     PolygonClassStatistics.SetParameterString("out", str(class_stats))
@@ -167,7 +167,7 @@ def select_samples(global_parameters, strategy="smallest", proceed=True):
     no_data_mask = no_data_shp[0:-4] + '.tif'
 
     print("  Training Samples Selection")
-    SampleSelection = otbApplication.Registry_CreateApplication("SampleSelection")
+    SampleSelection = otbApplication.Registry.CreateApplication("SampleSelection")
     SampleSelection.SetParameterString("in", str(raw_img))
     SampleSelection.SetParameterString("vec", str(training_shp))
     SampleSelection.SetParameterString("mask", str(no_data_mask))
@@ -207,7 +207,7 @@ def extract_samples(global_parameters, proceed=True):
         main_dir, 'Samples', global_parameters["general"]["training_samples_location"])
 
     print("  Training Samples Extraction")
-    SampleExtraction = otbApplication.Registry_CreateApplication("SampleExtraction")
+    SampleExtraction = otbApplication.Registry.CreateApplication("SampleExtraction")
     SampleExtraction.SetParameterString("in", str(raw_img))
     SampleExtraction.SetParameterString("vec", str(training_samples_location))
     SampleExtraction.SetParameterString("outfield", "prefix")
@@ -258,7 +258,7 @@ def train_model(global_parameters, shell=True, proceed=True):
                 training_samples_extracted, "class", model_out, method, str(features))
 
             model_options = ''
-            for key, value in dico[method].iteritems():
+            for key, value in dico[method].items():
                 model_options = model_options + ' -classifier.{}.{} {}'.format(method, key, value)
 
             command = command + model_options
@@ -274,7 +274,7 @@ def train_model(global_parameters, shell=True, proceed=True):
             TrainVectorClassifier.SetParameterStringList("feat", features_API)
             TrainVectorClassifier.SetParameterString("classifier", str(method))
 
-            for key, value in dico[method].iteritems():
+            for key, value in dico[method].items():
                 TrainVectorClassifier.SetParameterString(
                     str("classifier.{}.{}".format(method, key)), str(value))
 
@@ -396,7 +396,7 @@ def compute_mat_conf(global_parameters, show=True, proceed=True):
 
     print('Done')
 
-    with open(conf_matrix, 'rb') as csvfile:
+    with open(conf_matrix, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         rows = []
         for row in reader:

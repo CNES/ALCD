@@ -3,7 +3,7 @@
 
 import os
 import os.path as op
-import ogr
+from osgeo import ogr
 import numpy as np
 from random import shuffle
 
@@ -37,7 +37,8 @@ def shuffle_two_lists(list1, list2):
     '''
     list1_shuf = []
     list2_shuf = []
-    index_shuf = range(len(list1))
+    index_shuf = list(range(len(list1)))
+
     shuffle(index_shuf)
     for i in index_shuf:
         list1_shuf.append(list1[i])

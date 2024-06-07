@@ -28,7 +28,7 @@ import sys
 import os
 import os.path as op
 import subprocess
-import ogr
+from osgeo import ogr
 import numpy as np
 
 

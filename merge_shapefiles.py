@@ -26,7 +26,7 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
 import os.path as op
-import ogr
+from osgeo import ogr
 
 
 def merge_shapefiles(in_shp_list, class_list, out_shp):

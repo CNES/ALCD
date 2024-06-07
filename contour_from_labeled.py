@@ -30,7 +30,7 @@ import os.path as op
 import json
 import glob
 import otbApplication
-import gdal
+from osgeo import gdal
 from PIL import Image
 import numpy as np
 
@@ -54,8 +54,9 @@ def single_contour_from_labeled_dilatation(in_tif, out_tif, class_nb, radius=5, 
         Erosion = otbApplication.Registry.CreateApplication("BinaryMorphologicalOperation")
         Erosion.SetParameterInputImage("in", ClassExtract.GetParameterOutputImage("out"))
         Erosion.SetParameterString("filter", "erode")
-        Erosion.SetParameterInt("structype.ball.xradius", 1)
-        Erosion.SetParameterInt("structype.ball.yradius", 1)
+        Erosion.SetParameterString("structype", "ball")
+        Erosion.SetParameterInt("xradius", 1)
+        Erosion.SetParameterInt("yradius", 1)
         Erosion.UpdateParameters()
         Erosion.Execute()
 
@@ -67,8 +68,9 @@ def single_contour_from_labeled_dilatation(in_tif, out_tif, class_nb, radius=5, 
     else:
         Dilatation.SetParameterInputImage("in", ClassExtract.GetParameterOutputImage("out"))
     Dilatation.SetParameterString("filter", "dilate")
-    Dilatation.SetParameterInt("structype.ball.xradius", radius)
-    Dilatation.SetParameterInt("structype.ball.yradius", radius)
+    Dilatation.SetParameterString("structype", "ball")
+    Dilatation.SetParameterInt("xradius", radius)
+    Dilatation.SetParameterInt("yradius", radius)
     Dilatation.UpdateParameters()
     Dilatation.Execute()
 

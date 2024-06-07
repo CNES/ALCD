@@ -33,7 +33,7 @@ import os
 import shutil
 import matplotlib.pyplot as plt
 import glob
-import ogr
+
 import otbApplication
 from matplotlib.lines import Line2D
 

@@ -114,7 +114,6 @@ def rasterize_shp(input_shp, out_tif, reference_tif):
 
     # Get projection info from reference image
     image = gdal.Open(reference_tif, gdal.GA_ReadOnly)
-    print(image)
 
     # Open Shapefile
     shapefile = ogr.Open(input_shp)
@@ -148,7 +147,7 @@ def masks_preprocess(global_parameters, k_fold_step=None, k_fold_dir=None):
     layers_classes = []
 
     # append the classes names and numbers
-    for mask_name, mask_values in global_parameters["masks"].iteritems():
+    for mask_name, mask_values in global_parameters["masks"].items():
         layers_to_merge.append(op.join(main_dir, 'In_data', 'Masks', mask_values["shp"]))
         layers_classes.append(mask_values["class"])
 
