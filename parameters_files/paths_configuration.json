@@ -1,0 +1,42 @@
+{
+  "global_chains_paths": {
+    "L1C": "/home/mp/nicolasg/hydro_ref/MERGE/test/input",
+    "maja": "/mnt/data/SENTINEL2/L2A_MAJA",
+    "sen2cor": "/mnt/data/SENTINEL2/L2A_SEN2COR",
+    "fmask": "/mnt/data/home/baetensl/Programs/Fmask4_output",
+    "fmask3": "/mnt/data/home/baetensl/Programs/Output_fmask",
+    "DTM_input": "/mnt/data/home/baetensl/DTM/original",
+    "DTM_resized": "/mnt/data/home/baetensl/DTM/resized"
+  },
+  "data_paths": {
+    "data_alcd": "",
+    "data_pcc": "/mnt/data/home/baetensl/clouds_detection_git/Data_PCC"
+  },
+  "tile_location": {
+    "Alsace": "32ULU",
+    "Camargue": "31TFJ",
+    "Briere": "30TWT",
+    "Bretagne": "30UXU",
+    "Alpes": "31TGL",
+    "Bordeaux": "30TXQ",
+    "Chateauroux": "31TCM",
+    "Orleans": "31UDP",
+    "Arles": "31TFJ",
+    "Gobabeb": "33KWP",
+    "Mongu": "34LGJ",
+    "Pretoria": "35JPM",
+    "RailroadValley": "11SPC",
+    "29RPQ_20160417": "29RPQ",
+    "32TMR_20160323": "32TMR",
+    "32TNR_20161108": "32TNR",
+    "33UUU_20160817": "33UUU",
+    "35VLJ_20160831": "35VLJ",
+    "37PGQ_20151206": "37PGQ",
+    "49JGL_20160126": "49JGL",
+    "49JHM_20160126": "49JHM",
+    "Marrakech":"29RPQ",
+    "Ispra":"32TMR",
+    "Munich":"32UPU",
+    "Alta_Floresta_Brazil":"21LWK"
+  }
+}
