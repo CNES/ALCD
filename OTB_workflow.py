@@ -223,11 +223,12 @@ def extract_samples(global_parameters, proceed=True):
 # -------- 2. MODEL TRAINING ---------------------
 
 
-def train_model(global_parameters, model_parameters, shell=True, proceed=True):
+def train_model(global_parameters, shell=True, proceed=True):
     '''
     5. Train the model
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
+
     method = global_parameters["classification"]["method"]
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])
@@ -248,13 +249,16 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
 
     if proceed == True:
         print("  Train Vector Classifier")
+        # load the model parameters
+        with open(op.join('parameters_files', 'model_parameters.json'), 'r') as file_model:
+            dico = json.load(file_model)
         if shell == True:
             # can be run through the API or through the shell
             command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
                 training_samples_extracted, "class", model_out, method, str(features))
 
             model_options = ''
-            for key, value in model_parameters[method].items():
+            for key, value in dico[method].items():
                 model_options = model_options + ' -classifier.{}.{} {}'.format(method, key, value)
 
             command = command + model_options
@@ -270,7 +274,7 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
             TrainVectorClassifier.SetParameterStringList("feat", features_API)
             TrainVectorClassifier.SetParameterString("classifier", str(method))
 
-            for key, value in model_parameters[method].items():
+            for key, value in dico[method].items():
                 TrainVectorClassifier.SetParameterString(
                     str("classifier.{}.{}".format(method, key)), str(value))
 
@@ -352,7 +356,7 @@ def fancy_classif_viz(global_parameters, proceed=True):
     main_dir = global_parameters["user_choices"]["main_dir"]
 
     img_labeled = op.join(main_dir, 'Out', global_parameters["general"]["img_labeled_regularized"])
-    color_table = global_parameters["color_tables"]["otb"]
+    color_table = op.join('color_tables', global_parameters["color_tables"]["otb"])
     out_image_colorized = op.join(main_dir, 'Out', 'colorized_classif.png')
 
     ColorMapping = otbApplication.Registry.CreateApplication("ColorMapping")
