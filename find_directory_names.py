@@ -34,12 +34,11 @@ import re
 import csv
 
 
-def get_all_dates(location):
+def get_all_dates(location, paths_parameters):
     ''' 
     Get all dates for a given location
     '''
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
-    L1C_dir = paths_configuration["global_chains_paths"]["L1C"]
+    L1C_dir = paths_parameters["global_chains_paths"]["L1C"]
     location_dir = op.join(L1C_dir, location)
     all_dates_dir = glob.glob(op.join(location_dir, 'S2*.SAFE'))
 
@@ -101,13 +100,12 @@ def get_closest_dates(location, current_date, mode='after', nb_days=1):
     return closest_dates
 
 
-def get_L1C_dir(location, wanted_date, display=True):
+def get_L1C_dir(location, wanted_date, paths_parameters, display=True):
     '''
     Get the path of the L1C directory
     If the date is not valid, returns the closest one (after)
     '''
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
-    L1C_dir = paths_configuration["global_chains_paths"]["L1C"]
+    L1C_dir = paths_parameters["global_chains_paths"]["L1C"]
     location_dir = op.join(L1C_dir, location)
 
     date = wanted_date
@@ -131,15 +129,3 @@ def get_L1C_dir(location, wanted_date, display=True):
             print(file_name)
 
     return final, band_prefix, date
-
-
-def main():
-    location = 'Arles'
-    date = '20170917'
-    directory = get_L1C_dir(location, date, display=False)
-    print(directory)
-    return
-
-
-if __name__ == '__main__':
-    main()

@@ -24,6 +24,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
+import json
 import os
 import os.path as op
 import argparse
@@ -52,14 +53,14 @@ def create_jpg(in_jp2s, out_jpg):
     return
 
 
-def create_all_quicklook(location, out_dir):
+def create_all_quicklook(location, out_dir, paths_parameters):
     '''
     Create all the quicklooks for a given location
     '''
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    all_dates = find_directory_names.get_all_dates(location)
+    all_dates = find_directory_names.get_all_dates(location, paths_parameters)
     print(all_dates)
     nb_total_dates = len(all_dates)
     k = 0
@@ -67,7 +68,7 @@ def create_all_quicklook(location, out_dir):
         print('{}/{} dates done'.format(k, nb_total_dates))
         try:
             L1C_dir, band_prefix, date = find_directory_names.get_L1C_dir(
-                location, current_date, display=False)
+                location, current_date, paths_parameters, display=True)
         except Exception as e:
             print(e)
             k += 1
@@ -79,6 +80,7 @@ def create_all_quicklook(location, out_dir):
         in_jp2s = [R, G, B]
 
         out_jpg = op.join(out_dir, (location+'_'+date+'.jpg'))
+        print(out_jpg)
         create_jpg(in_jp2s, out_jpg)
 
         k += 1
@@ -89,9 +91,13 @@ def main():
 
     parser.add_argument('-l', action='store', default=None, dest='locations',
                         help='Locations, needs to be separated by a comma (e.g. "-l Arles,Gobabeb,Orleans")')
+    parser.add_argument('-paths_parameters', dest='paths_parameters_file',
+                        help='str, path to json file which contain useful path for ALCD', required=True)
 
     results = parser.parse_args()
     locations_to_parse = results.locations
+    with open(results.paths_parameters_file, "r", encoding="utf-8") as paths_parameters_file:
+        paths_parameters = json.load(paths_parameters_file)
     if locations_to_parse != None:
         locations = locations_to_parse.split(',')
 
@@ -101,7 +107,7 @@ def main():
 
     for location in locations:
         out_dir = op.join('tmp', location)
-        create_all_quicklook(location, out_dir)
+        create_all_quicklook(location, out_dir, paths_parameters)
 
     return
 
