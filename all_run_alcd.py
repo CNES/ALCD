@@ -46,16 +46,10 @@ import find_directory_names
 import confidence_map_exploitation
 
 
-def initialization_global_parameters(main_dir, raw_img_name, location, current_date, clear_date):
+def initialization_global_parameters(main_dir, data, paths_configuration, raw_img_name, location, current_date, clear_date):
     ''' To initialize the path and name in the JSON file
     Must be done at the very beggining
     '''
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
-
-    json_path = op.join('parameters_files', 'global_parameters.json')
-    jsonFile = open(json_path, "r")  # Open the JSON file for reading
-    data = json.load(jsonFile)  # Read the JSON into the buffer
-    jsonFile.close()  # Close the JSON file
 
     # Working with buffered content
     data["user_choices"]["main_dir"] = main_dir
@@ -64,11 +58,7 @@ def initialization_global_parameters(main_dir, raw_img_name, location, current_d
     data["user_choices"]["clear_date"] = clear_date
     data["user_choices"]["location"] = location
     data["user_choices"]["tile"] = paths_configuration["tile_location"][location]
-
-    # Save our changes to JSON file
-    jsonFile = open(json_path, "w+")
-    jsonFile.write(json.dumps(data, indent=3, sort_keys=True))
-    jsonFile.close()
+    return data
 
 
 def invitation_to_copy(global_parameters, first_iteration=False):
@@ -133,16 +123,16 @@ def invitation_to_copy(global_parameters, first_iteration=False):
                                                          source=source_dir, destination=dest_dir))
 
 
-def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
+def run_all(part, global_parameters, paths_parameters, model_parameters, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
+
     if part == 1:
         # Define the main parameters for the algorithm
         # If all is filled, will update the JSON file
         if location != None and wanted_date != None and clear_date != None:
-            paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
-            Data_PCC_dir = paths_configuration["data_paths"]["data_pcc"]
-            Data_ALCD_dir = paths_configuration["data_paths"]["data_alcd"]
 
-            tile = paths_configuration["tile_location"][location]
+            Data_ALCD_dir = paths_parameters["data_paths"]["data_alcd"]
+
+            tile = paths_parameters["tile_location"][location]
             if find_directory_names.is_valid_date(location, wanted_date):
                 current_date = wanted_date
             else:
@@ -156,12 +146,8 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
             raw_img_name = location + "_bands.tif"
 
             # Initialize the parameters with them
-            initialization_global_parameters(
-                main_dir, raw_img_name, location, current_date, clear_date)
-
-            # Load the parameters
-            global_parameters = json.load(
-                open(op.join('parameters_files', 'global_parameters.json')))
+            global_parameters = initialization_global_parameters(
+                main_dir, global_parameters, paths_parameters, raw_img_name, location, current_date, clear_date)
 
             if first_iteration == True:
                 # Create the directories
@@ -182,8 +168,6 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
                 # Fill automatically the no_data layer from the L1C missing
                 # pixels
                 layers_creation.create_no_data_shp(global_parameters, force=force)
-
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
 
     if part == 1:
         # Copy them to local machine
@@ -213,7 +197,7 @@ def run_all(part, first_iteration=False, location=None, wanted_date=None, clear_
 
     elif part == 4:
         # Train the model and classify the image
-        OTB_wf.train_model(global_parameters, shell=False, proceed=True)
+        OTB_wf.train_model(global_parameters, model_parameters, shell=False, proceed=True)
         additional_name = ''
         OTB_wf.image_classification(global_parameters, shell=False,
                                     proceed=True, additional_name=additional_name)
@@ -275,9 +259,21 @@ def main():
                         dest='kfold', help='Bool, Do a K-fold cross validation')
     parser.add_argument('-force', action='store', default='false', dest='force',
                         help='Bool, Force ALCD to erase previous In_Data')
-
+    parser.add_argument('-global_parameters', dest='global_parameters_file',
+                        help='str, path to json file which parametrize ALCD', required=True)
+    parser.add_argument('-paths_parameters',dest='paths_parameters_file',
+                        help='str, path to json file which contain useful path for ALCD', required=True)
+    parser.add_argument('-model_parameters', dest='model_parameters_file',
+                        help='str, path to json file which contain classifier parameters', required=True)
     results = parser.parse_args()
     location = results.location
+    with open(results.global_parameters_file, "r", encoding="utf-8") as global_parameters_file:
+        global_parameters = json.load(global_parameters_file)
+    with open(results.paths_parameters_file, "r", encoding="utf-8") as paths_parameters_file:
+        paths_parameters = json.load(paths_parameters_file)
+    with open(results.model_parameters_file, "r", encoding="utf-8") as model_parameters_file:
+        model_parameters = json.load(model_parameters_file)
+
 
     get_dates = str2bool(results.get_dates)
     if get_dates:
@@ -300,10 +296,9 @@ def main():
 
     wanted_date = results.wanted_date
     clear_date = results.clear_date
-
     force = str2bool(results.force)
-
     kfold = str2bool(results.kfold)
+
     if kfold:
         tmp_name = next(tempfile._get_candidate_names())
         k_fold_dir = op.join('tmp', 'kfold_{}'.format(tmp_name))
@@ -311,21 +306,18 @@ def main():
             os.makedirs(k_fold_dir)
             print(k_fold_dir + ' created')
 
-        #~ run_all(part, first_iteration = False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None)
-        global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
         K = int(global_parameters["training_parameters"]["Kfold"])
-
         for k_fold_step in range(K):
-            run_all(part=2, first_iteration=first_iteration,
-                    k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
-            run_all(part=3, first_iteration=first_iteration,
-                    k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
-            run_all(part=4, first_iteration=first_iteration,
-                    k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
-            run_all(part=5, first_iteration=first_iteration,
-                    k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
-            run_all(part=6, first_iteration=first_iteration,
-                    k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
+            run_all(part=2, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                    first_iteration=first_iteration, k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
+            run_all(part=3, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                    first_iteration=first_iteration, k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
+            run_all(part=4, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                    first_iteration=first_iteration, k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
+            run_all(part=5, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                    first_iteration=first_iteration, k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
+            run_all(part=6, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                    first_iteration=first_iteration, k_fold_step=k_fold_step, k_fold_dir=k_fold_dir)
 
             # Copy also the classification maps of the fold
             main_dir = global_parameters["user_choices"]["main_dir"]
@@ -343,14 +335,19 @@ def main():
         return
 
     if user_input == 0:
-        run_all(part=1, first_iteration=first_iteration, location=location,
-                wanted_date=wanted_date, clear_date=clear_date, force=force)
+        run_all(part=1, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, location=location, wanted_date=wanted_date, clear_date=clear_date, force=force)
     elif user_input == 1:
-        run_all(part=2, first_iteration=first_iteration, force=force)
-        run_all(part=3, first_iteration=first_iteration, force=force)
-        run_all(part=4, first_iteration=first_iteration, force=force)
-        run_all(part=5, first_iteration=first_iteration, force=force)
-        run_all(part=6, first_iteration=first_iteration, force=force)
+        run_all(part=2, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, force=force)
+        run_all(part=3, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, force=force)
+        run_all(part=4, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, force=force)
+        run_all(part=5, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, force=force)
+        run_all(part=6, global_parameters=global_parameters, paths_parameters=paths_parameters, model_parameters=model_parameters,
+                first_iteration=first_iteration, force=force)
     else:
         print('Please enter a valid step value [0 or 1]')
 
