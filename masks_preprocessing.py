@@ -175,21 +175,3 @@ def masks_preprocess(global_parameters, k_fold_step=None, k_fold_dir=None):
     print('Done')
 
     return
-
-
-def main():
-    kfold_out = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/kfold_out'
-    train_shp = op.join(kfold_out, 'train_test.shp')
-    validation_shp = op.join(kfold_out, 'validation_test.shp')
-    k_step = 2
-    k_fold_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/kfold'
-    load_kfold(train_shp, validation_shp, k_step, k_fold_dir)
-
-    masks_preprocess()
-    #~ split_and_augment()
-
-    return
-
-
-if __name__ == '__main__':
-    main()

@@ -243,24 +243,3 @@ def quick_contours(main_dir=''):
     contour_superposed_png = op.join(op.dirname(labeled_tif), 'contours_superposition.png')
     rgb_contours_stacking(raw_img, contour_tif, contour_superposed_png)
     return
-
-
-def generate_all_quicks():
-    ALCD_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/'
-    # ~ ALCD_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD_Hollstein/'
-    all_dirs = glob.glob(op.join(ALCD_dir, '*_*_*'))
-    print(len(all_dirs))
-
-    for main_dir in all_dirs:
-        quick_contours(main_dir)
-
-
-def main():
-    main_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002'
-    #~ quick_contours(main_dir)
-    generate_all_quicks()
-    return
-
-
-if __name__ == '__main__':
-    main()

@@ -107,14 +107,3 @@ def create_squares(in_shp, out_shp, max_dist_X, max_dist_Y):
     outDataSource.Destroy()
 
     return
-
-
-def main():
-    in_shp = '/mnt/data/home/baetensl/classification_clouds/Data/Orleans_all/In_data/Masks/land.shp'
-    out_shp = '/mnt/data/home/baetensl/classification_clouds/Data/Orleans_all/In_data/Masks/SQUARES.shp'
-
-    create_squares(in_shp, out_shp, max_dist_X=100, max_dist_Y=100)
-
-
-if __name__ == '__main__':
-    main()

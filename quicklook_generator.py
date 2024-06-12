@@ -100,7 +100,6 @@ def main():
         locations = ['Alta_Floresta_Brazil']
 
     for location in locations:
-        # ~ out_dir = op.join('/mnt/data/home/baetensl/clouds_detection_git/Tools/tmp/Quicks2', location)
         out_dir = op.join('tmp', location)
         create_all_quicklook(location, out_dir)
 

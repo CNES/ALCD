@@ -288,30 +288,4 @@ def k_split(in_shp, out_dir, K):
 
 
     inDataSource.Destroy()
-    
-    return        
-    
-    
-
-
-    
-def main():
-    shp_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/Intermediate'
-    in_shp = op.join(shp_dir, 'merged.shp')
-    
-    out_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/kfold'
-    K = 10
-    k_split(in_shp, out_dir, K)
-    
     return
-    
-    train_shp = op.join(shp_dir, 'train_points.shp')
-    validation_shp = op.join(shp_dir, 'validation_points.shp')
-    
-    proportion = 0.7
-    split_points_sample(in_shp, train_shp, validation_shp, proportion)
-
-
-    
-if __name__ == '__main__':
-    main()        
