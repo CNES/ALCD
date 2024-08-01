@@ -1,26 +1,3 @@
-"""
-Tool to generate reference cloud masks for validation of operational cloud masks.
-The elaboration is performed using an active learning procedure.
-
-==================== Copyright
-Software (conftest.py)
-
-Copyright© 2019 Centre National d’Etudes Spatiales
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 3
-as published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this program.  If not, see
-https://www.gnu.org/licenses/gpl-3.0.fr.html
-"""
-
 from dataclasses import dataclass
 
 import pytest
