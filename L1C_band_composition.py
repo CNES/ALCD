@@ -115,7 +115,7 @@ def create_specific_indices(in_bands_dir, out_tif, indice_name, resolution=60):
         print('Please enter a valid indice name')
 
 
-def create_time_difference_band(global_parameters, band_num, out_tif, resolution=60):
+def create_time_difference_band(global_parameters, paths_parameters, band_num, out_tif, resolution=60):
     '''
     Create a TIF being the difference between the cloudy date and the clear date
     The band_num is the number of the band of interest
@@ -125,9 +125,9 @@ def create_time_difference_band(global_parameters, band_num, out_tif, resolution
     clear_date = global_parameters["user_choices"]["clear_date"]
 
     current_dir, current_band_prefix, current_date = find_directory_names.get_L1C_dir(
-        location, current_date, display=False)
+        location, current_date,paths_parameters, display=False)
     clear_dir, clear_band_prefix, clear_date = find_directory_names.get_L1C_dir(
-        location, clear_date, display=False)
+        location, clear_date,paths_parameters, display=False)
 
     band_num_str = '{:02d}'.format(band_num)
 
@@ -293,7 +293,7 @@ def resize_band(in_band, out_band, pixelresX, pixelresY):
     os.system(build_warp)
 
 
-def create_image_compositions(global_parameters, location, current_date, heavy=False, force=False):
+def create_image_compositions(global_parameters, location, paths_parameters, current_date, heavy=False, force=False):
     #
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                   'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
@@ -304,7 +304,7 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
 
     # get the directory of the bands
     bands_dir, band_prefix, date = find_directory_names.get_L1C_dir(
-        location, current_date, display=True)
+        location, current_date, paths_parameters, display=True)
     # --------------------------------------------
     # ------ Low resolution TIF with all the bands
     # Preparation
@@ -356,7 +356,7 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
     out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
     for band_num in bands_num:
         out_tif = op.join(out_dir_bands, ('time_' + str(band_num) + '.tif'))
-        create_time_difference_band(global_parameters, band_num, out_tif, resolution=resolution)
+        create_time_difference_band(global_parameters, paths_parameters, band_num, out_tif, resolution=resolution)
         additional_bands.append(str(out_tif))
 
     # --- Create the main TIF with low resolution
@@ -429,7 +429,7 @@ def create_image_compositions(global_parameters, location, current_date, heavy=F
     return
 
 
-def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
+def create_no_data_tif(global_parameters, paths_parameters, out_tif, dilation_radius=10):
     '''
     Create the no_data TIF using both the clear and cloudy date.
     Used in the 'layers_creation.create_no_data_shp'
@@ -439,9 +439,9 @@ def create_no_data_tif(global_parameters, out_tif, dilation_radius=10):
     clear_date = global_parameters["user_choices"]["clear_date"]
 
     current_dir, current_band_prefix, current_date = find_directory_names.get_L1C_dir(
-        location, current_date, display=False)
+        location, current_date, paths_parameters, display=False)
     clear_dir, clear_band_prefix, clear_date = find_directory_names.get_L1C_dir(
-        location, clear_date, display=False)
+        location, clear_date, paths_parameters, display=False)
 
     # Band number, the 1 is 20m resolution, change it if
     # other resolution is wanted
