@@ -133,13 +133,13 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
             Data_ALCD_dir = paths_parameters["data_paths"]["data_alcd"]
 
             tile = paths_parameters["tile_location"][location]
-            if find_directory_names.is_valid_date(location, wanted_date):
+            if find_directory_names.is_valid_date(location, wanted_date, paths_parameters):
                 current_date = wanted_date
             else:
                 print('Error: please enter a valid wanted date')
                 raise NameError('Invalid wanted date')
 
-            if not find_directory_names.is_valid_date(location, clear_date):
+            if not find_directory_names.is_valid_date(location, clear_date, paths_parameters):
                 print('Error: please enter a valid cloud free date')
                 raise NameError('Invalid cloud free date')
             main_dir = op.join(Data_ALCD_dir, (location + '_' + tile + '_' + current_date))
@@ -154,20 +154,21 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                 OTB_workflow.create_directories(global_parameters)
 
                 # Copy the global_parameters files to save it
-                src = op.join('parameters_files', 'global_parameters.json')
+                src = global_parameters["json_file"]
                 dst = op.join(global_parameters["user_choices"]
                               ["main_dir"], 'In_data', 'used_global_parameters.json')
                 shutil.copyfile(src, dst)
 
                 # Create the images .tif and .jp2, i.e. the features
                 L1C_band_composition.create_image_compositions(
-                    global_parameters, location, current_date, heavy=True, force=force)
+                    global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
 
                 # Create the empty layers
                 layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
+
                 # Fill automatically the no_data layer from the L1C missing
                 # pixels
-                layers_creation.create_no_data_shp(global_parameters, force=force)
+                layers_creation.create_no_data_shp(global_parameters,paths_parameters, force=force)
 
     if part == 1:
         # Copy them to local machine
@@ -250,7 +251,7 @@ def main():
     parser.add_argument('-l', action='store', default=None,
                         dest='location', help='Location (e.g. Orleans)')
     parser.add_argument('-d', action='store', default=None, dest='wanted_date',
-                        help='Date, The desired date to process (e.g. 20170702)')
+                        type=str, help='Date, The desired date to process (e.g. 20170702)')
     parser.add_argument('-c', action='store', default=None, dest='clear_date',
                         help='Date, The nearest clear date (e.g. 20170704)')
     parser.add_argument('-dates', action='store', default='false',
@@ -274,7 +275,7 @@ def main():
     with open(results.model_parameters_file, "r", encoding="utf-8") as model_parameters_file:
         model_parameters = json.load(model_parameters_file)
 
-
+    global_parameters["json_file"] = results.global_parameters_file
     get_dates = str2bool(results.get_dates)
     if get_dates:
         available_dates = find_directory_names.get_all_dates(location)
@@ -331,7 +332,6 @@ def main():
                 shutil.copy(src, dst)
 
         metrics_exploitation.retrieve_Kfold_data(global_parameters, metrics_plotting=True)
-
         return
 
     if user_input == 0:

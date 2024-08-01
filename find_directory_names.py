@@ -61,11 +61,11 @@ def get_all_dates(location, paths_parameters):
     return dates
 
 
-def is_valid_date(location, current_date):
+def is_valid_date(location, current_date, paths_parameters):
     '''
     Check if a date is valid for a given location
     '''
-    valid_dates = sorted(get_all_dates(location))
+    valid_dates = sorted(get_all_dates(location, paths_parameters))
     if current_date in valid_dates:
         return True
     else:
