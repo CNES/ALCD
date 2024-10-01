@@ -36,7 +36,8 @@ def test_run_alcd(alcd_paths):
     )
     # Get output as strings
     out, err = proc.communicate()
-    print(out)
+    assert proc.returncode == 0, out.decode('utf-8')
+
 
 def test_run_alcd_gen_features(alcd_paths):
 
@@ -51,7 +52,7 @@ def test_run_alcd_gen_features(alcd_paths):
 
     # Get output as strings
     out, err = proc.communicate()
-    print(out)
+    assert proc.returncode == 0, out.decode('utf-8')
 
 def test_quicklook(alcd_paths):
     cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {alcd_paths.cfg}/paths_configuration.json"
@@ -62,3 +63,4 @@ def test_quicklook(alcd_paths):
 
     # Get output as strings
     out, err = proc.communicate()
+    assert proc.returncode == 0, out.decode('utf-8')
