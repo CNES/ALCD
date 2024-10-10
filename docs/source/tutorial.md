@@ -314,3 +314,6 @@ classification, and with the confidence map, are given in ``Figures 11, 12 and 1
 
   <p>Figure 13: Confidence map as seen in QGIS for the last iteration</p>
 </div>
+
+
+{doc}`water_mask <configure_alcd>`.

@@ -15,6 +15,6 @@ For a quick start, you can directly go to the {doc}`tutorial <tutorial>` parts.
 How to install ALCD <how_to_install_alcd>
 configure ALCD <configure_alcd>
 ACLD workflow <workflow>
-Tutorial <tutorial>
+Tutorials <tutorials>
 Tips and advice <tips>
 Complementary information <complementary_information>

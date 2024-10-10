@@ -18,23 +18,22 @@ extensions = []
 templates_path = ['_templates']
 exclude_patterns = []
 
-
+nb_execution_mode = 'off'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 
 html_static_path = ['_static', 'images']
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
-}
+
 extensions = [
-    'myst_parser',
+    'myst_nb',
+    #'myst_parser',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
-    "sphinx_rtd_theme"
+    'sphinx.ext.viewcode',
 ]
 
 myst_enable_extensions = [

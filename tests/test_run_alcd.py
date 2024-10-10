@@ -2,10 +2,8 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from tests.conftest import ALCDTestsData
+from conftest import ALCDTestsData
 
 def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir) -> tuple[Path, Path]:
     """
@@ -62,7 +60,6 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305")
-
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
