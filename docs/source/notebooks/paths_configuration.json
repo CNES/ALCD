@@ -1,0 +1,11 @@
+{
+   "data_paths": {
+      "data_alcd": "montreux_outputs"
+   },
+   "global_chains_paths": {
+      "L1C": "s2"
+   },
+   "tile_location": {
+      "Montreux": "32TLS"
+   }
+}

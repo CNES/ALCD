@@ -352,7 +352,7 @@ def fancy_classif_viz(global_parameters, proceed=True):
     main_dir = global_parameters["user_choices"]["main_dir"]
 
     img_labeled = op.join(main_dir, 'Out', global_parameters["general"]["img_labeled_regularized"])
-    color_table = op.join('color_tables', global_parameters["color_tables"]["otb"])
+    color_table = global_parameters["color_tables"]["otb"]
     out_image_colorized = op.join(main_dir, 'Out', 'colorized_classif.png')
 
     ColorMapping = otbApplication.Registry.CreateApplication("ColorMapping")

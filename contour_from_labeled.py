@@ -172,8 +172,10 @@ def rgb_contours_stacking(in_tif, contour_label_tif, out_png):
     Stacks the contour of the labeled image on the RGB image itself
     Easier for visualisation
     '''
+
     # in_tif is the bands stacking tiff
     ds = gdal.Open(in_tif)
+    nb_bands = ds.RasterCount
 
     # temporary array to get the image characteristics
     temp_array = ds.GetRasterBand(1).ReadAsArray()
@@ -182,14 +184,16 @@ def rgb_contours_stacking(in_tif, contour_label_tif, out_png):
     # select the RGB bands from tif and the thresholds above which
     # a 255 value will be assigned
     RGB_bands = [4, 3, 2]  # red, green, blue
+    if nb_bands<3:
+        RGB_bands = [1]
     RGB_thresholds = [2500, 2500, 2500]  # max thresholds
 
     # create the blank image
     rgbArray = np.zeros((image_width, image_height, 3), 'uint8')
 
     # load and rescale the different channels
-    for channel in [0, 1, 2]:
-        current_band = np.array(ds.GetRasterBand(RGB_bands[channel]).ReadAsArray())
+    for channel, band in enumerate(RGB_bands):
+        current_band = np.array(ds.GetRasterBand(band).ReadAsArray())
         current_band = np.divide(current_band, RGB_thresholds[channel]/255)
         current_band[current_band > 255] = 255.0
 
