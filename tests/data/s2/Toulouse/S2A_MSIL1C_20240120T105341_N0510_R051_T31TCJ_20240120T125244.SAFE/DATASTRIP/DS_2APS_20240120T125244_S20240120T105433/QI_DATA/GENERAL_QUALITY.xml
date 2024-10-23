@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Earth_Explorer_File xmlns="http://gs2.esa.int/DATA_STRUCTURE/olqcReport">
+    <Earth_Explorer_Header>
+        <Fixed_Header>
+            <File_Name>S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_GENERAL_QUALITY_report.xml</File_Name>
+            <File_Description>Report produced by OLQC-SC</File_Description>
+            <Notes></Notes>
+            <Mission>S2A</Mission>
+            <File_Class>OPER</File_Class>
+            <File_Type>REP_OLQCPA</File_Type>
+            <Validity_Period>
+                <Validity_Start>UTC=2022-08-30T00:25:00</Validity_Start>
+                <Validity_Stop>UTC=2100-01-01T00:00:00</Validity_Stop>
+            </Validity_Period>
+            <File_Version>2</File_Version>
+            <Source>
+                <System>OLQC-SC</System>
+                <Creator>OLQC-SC</Creator>
+                <Creator_Version>06.02.00</Creator_Version>
+                <Creation_Date>UTC=2024-01-20T15:03:12</Creation_Date>
+            </Source>
+        </Fixed_Header>
+    </Earth_Explorer_Header>
+    <Data_Block type="xml">
+        <report gippVersion="1.0" globalStatus="PASSED" date="2024-01-20T15:03:12.491Z">
+            <checkList>
+                <parentID>S2A_OPER_GIP_OLQCPA_MPC__20220715T000042_V20220830T002500</parentID>
+                <name>GENERAL_QUALITY</name>
+                <version>1.0</version>
+                <item url="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/" className="PDI Level 1C Datastrip Folder" name="S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10" class="http://www.esa.int/s2#pdi_level_1c_datastrip_container"/>
+                <check>
+                    <inspection creation="2024-01-20T15:03:09.905Z" duration="2536" execution="2024-01-20T15:03:09.911Z" id="checkMetadata" item="S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/" name="Metadata file check. " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">Metadata file is present.</message>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:13.875Z" duration="707" execution="2024-01-20T15:03:13.969Z" id="Lost_Packets" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check the number of lost packets " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">NUMBER_OF_LOST_PACKETS value 0 does not exceed the threshold (0) </message>
+                    <extraValues>
+                        <value name="NUMBER_OF_LOST_PACKETS">0</value>
+                    </extraValues>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:14.882Z" duration="0" execution="2024-01-20T15:03:14.888Z" id="Orbit_Number_DOWNLINK" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check the consistency of downlink orbit number. " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">Downlink Orbit number (44808) is in range [1,99999] </message>
+                    <extraValues>
+                        <value name="DOWNLINK_ORBIT_NUMBER">44808</value>
+                    </extraValues>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:14.981Z" duration="0" execution="2024-01-20T15:03:15.044Z" id="List_Fake_Decompressed_Source_Frames" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check list of fake decompressed sources frames  " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">Fake decompressed source frames are valid. </message>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:15.093Z" duration="0" execution="2024-01-20T15:03:15.129Z" id="Processor_Version" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check the processor version. " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">Processor version is valid (05.10) </message>
+                    <extraValues>
+                        <value name="PROCESSOR_VERSION">05.10</value>
+                    </extraValues>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:15.221Z" duration="0" execution="2024-01-20T15:03:15.244Z" id="Relative_Orbit_Number_SENSING" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check the consistency of relative imaging orbit number. " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">Sensing orbit number (51) is in range [1,143] </message>
+                    <extraValues>
+                        <value name="SENSING_ORBIT_NUMBER">51</value>
+                    </extraValues>
+                </check>
+                <check>
+                    <inspection creation="2024-01-20T15:03:15.298Z" duration="0" execution="2024-01-20T15:03:15.317Z" id="Degraded_Packets" item="S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" itemURL="/mnt/nfs-l1-01/l1-processing/processing-id-47797-2024-01-20-13-25-03/TaskTable_20240120T132504/FORMAT_METADATA_DS_L1C/output/PDI_DS/S2A_OPER_MSI_L1C_DS_2APS_20240120T125244_S20240120T105433_N05.10/S2A_OPER_MTD_L1C_DS_2APS_20240120T125244_S20240120T105433.xml" name="Check the number of degraded packets " priority="5" processingStatus="done" status="PASSED"/>
+                    <message contentType="text/plain">NUMBER_OF_TOO_DEGRADED_PACKETS value 0 does not exceed the threshold (0) </message>
+                    <extraValues>
+                        <value name="NUMBER_OF_TOO_DEGRADED_PACKETS">0</value>
+                    </extraValues>
+                </check>
+            </checkList>
+        </report>
+    </Data_Block>
+</Earth_Explorer_File>
