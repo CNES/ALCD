@@ -1,0 +1,6 @@
+B1 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/T31TCJ_20240305T104819_B02.tif
+B2 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/T31TCJ_20240305T104819_B03.tif
+B3 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/T31TCJ_20240305T104819_B04.tif
+B4 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/T31TCJ_20240305T104819_B10.tif
+B5 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/NDVI.tif
+B6 : /home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/Toulouse_31TCJ_20240305/Intermediate/NDWI.tif
