@@ -1,0 +1,67 @@
+# Tool to generate reference cloud masks for validation of operational cloud masks.
+# The elaboration is performed using an active learning procedure.
+#
+# ==================== Copyright
+# Software (alcd.def)
+#
+# Copyright© 2019 Centre National d’Etudes Spatiales
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this program.  If not, see
+# https://www.gnu.org/licenses/gpl-3.0.fr.html
+
+
+BootStrap: docker
+From: ubuntu:22.04
+
+%environment
+    export CMAKE_PREFIX_PATH=/app/otb
+    export PYTHONPATH=/app/otb/lib/python3/dist-packages:/app/otb/lib/otb/python
+    export GDAL_DRIVER_PATH=disable
+    export GDAL_DATA=/app/otb/share/gdal
+    export PROJ_LIB=/app/otb/share/proj
+    export PATH=/app/otb/bin:$PATH
+    export LD_LIBRARY_PATH=/app/otb/lib:$LD_LIBRARY_PATH
+    export OTB_APPLICATION_PATH=/app/otb/lib/otb/applications
+    export OTB_INSTALL_DIR=/app/otb
+    export LC_NUMERIC=C
+
+%post
+    export CMAKE_PREFIX_PATH=/app/otb
+    export PYTHONPATH=/app/otb/lib/python3/dist-packages:/app/otb/lib/otb/python
+    export GDAL_DRIVER_PATH=disable
+    export GDAL_DATA=/app/otb/share/gdal
+    export PROJ_LIB=/app/otb/share/proj
+    export PATH=/app/otb/bin:$PATH
+    export LD_LIBRARY_PATH=/app/otb/lib:$LD_LIBRARY_PATH
+    export OTB_APPLICATION_PATH=/app/otb/lib/otb/applications
+    export OTB_INSTALL_DIR=/app/otb
+    export LC_NUMERIC=C
+    # Install system dependencies
+    apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ca-certificates curl python3 python3-dev python3-numpy make cmake gcc g++ swig findutils file pip && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
+    curl -k -L https://www.orfeo-toolbox.org/packages/archives/OTB/OTB-${OTB_RELEASE:-9.0.0}-Linux.tar.gz -o OTB.tar.gz
+    tar xvf OTB.tar.gz --one-top-level="/app/otb" && rm OTB.tar.gz
+
+    # Run post install to apply sed commands on cmake files and to get python bindings if needed
+    sh /app/otb/tools/post_install.sh && sh /app/otb/recompile_bindings.sh
+
+    # Install Python dependencies
+    pip3 install pillow matplotlib pytest numpy==1.23.3
+
+    # Create a symlink for python
+    ln -s /usr/bin/python3 /usr/bin/python
+
+%runscript
+    exec /bin/bash
