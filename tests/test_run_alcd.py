@@ -32,6 +32,7 @@ def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir) -> tuple[Path, Path]
         global_parameters = json.load(parameters_file)
 
     paths_parameters["global_chains_paths"]["L1C"] = str(alcd_paths.s2_data)
+    paths_parameters["data_paths"]["data_alcd"] = str(alcd_paths.s2_data)
     global_parameters["color_tables"]["otb"] = str(alcd_paths.cfg / "otb_table.txt")
     global_parameters["user_choices"]["main_dir"] = str(output_dir)
 
