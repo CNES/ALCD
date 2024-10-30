@@ -24,14 +24,9 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import sys
-import os
 import os.path as op
-import json
 import glob
-import argparse
 import re
-import csv
 
 
 def get_all_dates(location, paths_parameters):

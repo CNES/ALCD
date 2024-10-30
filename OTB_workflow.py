@@ -25,13 +25,14 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
 import os.path as op
-import json
 import otbApplication
 import csv
 import subprocess
 import xml.etree.ElementTree as ET
 import contour_from_labeled
 import confidence_map_exploitation
+from alcd_params.params_reader import read_global_parameters
+
 
 # -------- 0. DIRECTORIES CREATION---------------------
 
@@ -459,7 +460,7 @@ def create_contour_from_labeled(global_parameters, proceed=True):
 
 
 def main():
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    global_parameters = read_global_parameters(op.join('parameters_files', 'global_parameters.json'))
     train_model(global_parameters, shell=False, proceed=True)
 
     return

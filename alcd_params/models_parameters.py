@@ -1,4 +1,4 @@
-from PyQt5.uic.Compiler.misc import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel
 
 
@@ -206,10 +206,10 @@ class MLConfig(BaseModel):
     knn : KNNConfig
         Configuration for the K-Nearest Neighbors model.
     """
-    libsvm: LibSVMConfig
-    boost: BoostConfig
-    dt: DTConfig
-    gbt: GBTConfig
-    ann: ANNConfig
-    rf: RFConfig
-    knn: KNNConfig
+    libsvm: Optional[LibSVMConfig] = None
+    boost: Optional[BoostConfig] = None
+    dt: Optional[DTConfig] = None
+    gbt: Optional[GBTConfig] = None
+    ann: Optional[ANNConfig] = None
+    rf: Optional[RFConfig] = None
+    knn: Optional[KNNConfig] = None

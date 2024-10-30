@@ -28,11 +28,11 @@ import os.path as op
 import otbApplication
 import find_directory_names
 import glob
-import json
 import shutil
-import subprocess
 import tempfile
 import argparse
+
+from alcd_params.params_reader import read_paths_parameters, read_global_parameters
 
 
 def create_composit_band(bands_full_paths, out_tif, resolution=60, composit_type='ND'):
@@ -260,7 +260,7 @@ def dtm_addition(location, out_band, resolution=60):
     Create the adapted Digital Terrain Model
     From the original one, change its resolution
     '''
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
+    paths_configuration = read_paths_parameters(open(op.join('parameters_files', 'paths_configuration.json')))
     tile = paths_configuration["tile_location"][location]
 
     original_DTM_dir = paths_configuration["global_chains_paths"]["DTM_input"]
@@ -473,6 +473,8 @@ def str2bool(v):
     '''
     Converts a string to a boolean
     '''
+    if isinstance(v, bool):
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -482,7 +484,7 @@ def str2bool(v):
 
 
 def main():
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    global_parameters = read_global_parameters(op.join('parameters_files', 'global_parameters.json'))
 
     out_tif = 'tmp/tmp_tif.tif'
     create_no_data_tif(global_parameters, out_tif, resolution=60)

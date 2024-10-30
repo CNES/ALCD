@@ -29,11 +29,11 @@ import os
 import os.path as op
 from osgeo import ogr
 from osgeo import gdal, osr
-import json
-import otbApplication
 import L1C_band_composition
 import subprocess
 import tempfile
+
+from alcd_params.params_reader import read_global_parameters
 
 
 def empty_shapefile_creation(in_tif, out_shp_list, geometry_type='point'):
@@ -180,7 +180,7 @@ def simplify_geometry(in_shp, out_shp, tolerance=100):
 
 
 def main():
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    global_parameters = read_global_parameters(op.join('parameters_files', 'global_parameters.json'))
 
     create_all_classes_empty_layers(global_parameters, force=False)
 
