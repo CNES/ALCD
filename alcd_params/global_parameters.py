@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, FilePath, field_validator, ValidationInfo
 from datetime import datetime
@@ -251,3 +251,5 @@ class ALCDConfig(BaseModel):
     postprocessing: PostProcessing
     training_parameters: TrainingParameters
     user_choices: UserChoices
+    local_paths: LocalPaths
+    json_file: Optional[str] = None

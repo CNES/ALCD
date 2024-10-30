@@ -41,6 +41,8 @@ import metrics_exploitation
 import find_directory_names
 import confidence_map_exploitation
 
+from alcd_params.params_reader import read_global_parameters, read_models_parameters, read_paths_parameters
+
 
 def initialization_global_parameters(main_dir, data, paths_configuration, raw_img_name, location, current_date, clear_date):
     ''' To initialize the path and name in the JSON file
@@ -228,6 +230,8 @@ def str2bool(v):
     '''
     Use it to change multiple pseudo-boolean values to a real boolean
     '''
+    if isinstance(v, bool):
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -264,12 +268,9 @@ def main():
                         help='str, path to json file which contain classifier parameters', required=True)
     results = parser.parse_args()
     location = results.location
-    with open(results.global_parameters_file, "r", encoding="utf-8") as global_parameters_file:
-        global_parameters = json.load(global_parameters_file)
-    with open(results.paths_parameters_file, "r", encoding="utf-8") as paths_parameters_file:
-        paths_parameters = json.load(paths_parameters_file)
-    with open(results.model_parameters_file, "r", encoding="utf-8") as model_parameters_file:
-        model_parameters = json.load(model_parameters_file)
+    global_parameters = read_global_parameters(results.global_parameters_file)
+    paths_parameters = read_paths_parameters(results.paths_parameters_file)
+    model_parameters = read_models_parameters(results.model_parameters_file)
 
     global_parameters["json_file"] = results.global_parameters_file
     get_dates = str2bool(results.get_dates)
