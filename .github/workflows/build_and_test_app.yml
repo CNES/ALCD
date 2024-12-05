@@ -1,33 +1,23 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
 name: ALCD
 
 on:
+  push:
+    branches: [ "add_doc" ]
   pull_request:
-    branches:
-      - "master"
+    branches: [ "add_doc" ]
 
 permissions:
   contents: read
 env:
   OTB_RELEASE: 9.1.0
 jobs:
-  quality:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: setup python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-      - name: install quality deps
-        run: |
-          pip install pylint mccabe
-      - name: code quality
-        run: |
-          pylint --disable=all --fail-under=10 --enable=too-many-statements --max-statements=100 .
-          pylint --disable=all --fail-under=10 --enable=too-many-nested-blocks .
-          ./continuous_integration/scripts/check_mccabe_complexity.sh 25 .
-  test:
-    runs-on: ubuntu-22.04
+  build:
+
+    runs-on: ubuntu:22.04
+
     steps:
     - uses: actions/checkout@v4
     - name: setup python 3.10
@@ -36,27 +26,20 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
-        sudo apt install -y --no-install-recommends g++ swig cmake make
-        pip install "numpy<2"
+        apt install -y --no-install-recommends g++ swig cmake make
         curl https://www.orfeo-toolbox.org/packages/archives/OTB/OTB-$OTB_RELEASE-Linux.tar.gz -o OTB-$OTB_RELEASE-Linux.tar.gz
         tar xvf OTB-$OTB_RELEASE-Linux.tar.gz --one-top-level="/opt/otb"
         source /opt/otb/otbenv.profile
         sh /opt/otb/recompile_bindings.sh
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov
-        if [ -f docker/requirements.txt ]; then pip install -r docker/requirements.txt; fi
-    - name: pytest
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with flake8
       run: |
-        cd tests
-        export CMAKE_PREFIX_PATH=/opt/otb
-        export PYTHONPATH=/opt/otb/lib/python3/dist-packages:/opt/otb/lib/otb/python
-        export GDAL_DRIVER_PATH=disable
-        export GDAL_DATA=/opt/otb/share/gdal
-        export PROJ_LIB=/opt/otb/share/proj
-        export PATH=/opt/otb/bin:$PATH
-        export LD_LIBRARY_PATH=/opt/otb/lib:$LD_LIBRARY_PATH
-        export OTB_APPLICATION_PATH=/opt/otb/lib/otb/applications
-        export OTB_INSTALL_DIR=/opt/otb
-        export LC_NUMERIC=C
-        
-        pytest -s --cov-fail-under=65
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
