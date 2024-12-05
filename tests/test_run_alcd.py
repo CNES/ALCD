@@ -189,7 +189,10 @@ def test_quicklook(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the quicklook generation process fails (i.e., returns a non-zero exit code).
     """
-    cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {alcd_paths.cfg}/paths_configuration.json"
+
+    _, paths_param_file = prepare_test_dir(alcd_paths, alcd_paths.data_dir / "test_quicklooks" / "Toulouse_31TCJ_20240305")
+
+    cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {paths_param_file}"
 
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
