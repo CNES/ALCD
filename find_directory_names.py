@@ -41,7 +41,6 @@ def get_all_dates(location, paths_parameters):
     L1C_dir = paths_parameters["global_chains_paths"]["L1C"]
     location_dir = op.join(L1C_dir, location)
     all_dates_dir = glob.glob(op.join(location_dir, 'S2*.SAFE'))
-
     dates = []
     for date_dir in all_dates_dir:
         last_dir = op.basename(op.normpath(date_dir))
