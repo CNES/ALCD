@@ -278,7 +278,7 @@ def main():
     global_parameters["json_file"] = results.global_parameters_file
     get_dates = str2bool(results.get_dates)
     if get_dates:
-        available_dates = find_directory_names.get_all_dates(location)
+        available_dates = find_directory_names.get_all_dates(location, paths_parameters)
         print('\nAvailable dates:\n')
         print([str(d) for d in available_dates])
         return

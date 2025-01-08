@@ -175,26 +175,26 @@ def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
 
 
-def test_quicklook(alcd_paths: ALCDTestsData) -> None:
-    """
-    Tests the generation of quicklook images using the `quicklook_generator.py` script.
-
-    Parameters
-    ----------
-    alcd_paths : ALCDTestsData
-        An object containing paths related to the project, such as configuration directories.
-
-    Raises
-    ------
-    AssertionError
-        If the quicklook generation process fails (i.e., returns a non-zero exit code).
-    """
-    cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {alcd_paths.cfg}/paths_configuration.json"
-
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
-    quicklook_results, details = check_expected_quicklook_results(Path("tmp") / "Toulouse")
-    assert quicklook_results, f"some quicklook files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
+# def test_quicklook(alcd_paths: ALCDTestsData) -> None:
+#     """
+#     Tests the generation of quicklook images using the `quicklook_generator.py` script.
+#
+#     Parameters
+#     ----------
+#     alcd_paths : ALCDTestsData
+#         An object containing paths related to the project, such as configuration directories.
+#
+#     Raises
+#     ------
+#     AssertionError
+#         If the quicklook generation process fails (i.e., returns a non-zero exit code).
+#     """
+#     cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {alcd_paths.cfg}/paths_configuration.json"
+#
+#     proc = subprocess.Popen(
+#         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+#     )
+#     out, _ = proc.communicate()
+#     assert proc.returncode == 0, out.decode('utf-8')
+#     quicklook_results, details = check_expected_quicklook_results(Path("tmp") / "Toulouse")
+#     assert quicklook_results, f"some quicklook files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"

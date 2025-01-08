@@ -26,12 +26,21 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 import os
 import os.path as op
 import json
+import sqlite3
+import joblib
+import rasterio
+import pandas as pd
+
 import otbApplication
+import numpy as np
+from PIL import Image
 import csv
 import subprocess
 import xml.etree.ElementTree as ET
 import contour_from_labeled
 import confidence_map_exploitation
+from sklearn.ensemble import RandomForestClassifier
+
 
 # -------- 0. DIRECTORIES CREATION---------------------
 
@@ -228,6 +237,7 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     5. Train the model
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
+    lib = global_parameters["classification"]["lib"]
     method = global_parameters["classification"]["method"]
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])
@@ -248,35 +258,83 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
 
     if proceed == True:
         print("  Train Vector Classifier")
-        if shell == True:
-            # can be run through the API or through the shell
-            command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
-                training_samples_extracted, "class", model_out, method, str(features))
 
-            model_options = ''
-            for key, value in model_parameters[method].items():
-                model_options = model_options + ' -classifier.{}.{} {}'.format(method, key, value)
+        if lib == "otb":
+            input('otb')
+            if shell == True:
+                # can be run through the API or through the shell
+                command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
+                    training_samples_extracted, "class", model_out, method, str(features))
 
-            command = command + model_options
-            subprocess.call(command, shell=True)
+                model_options = ''
+                for key, value in model_parameters[method].items():
+                    model_options = model_options + ' -classifier.{}.{} {}'.format(method, key, value)
 
+                command = command + model_options
+                subprocess.call(command, shell=True)
+
+            else:
+                TrainVectorClassifier = otbApplication.Registry.CreateApplication(
+                    "TrainVectorClassifier")
+                TrainVectorClassifier.SetParameterStringList("io.vd", [str(training_samples_extracted)])
+                #~ TrainVectorClassifier.SetParameterString("io.stats", str(img_stats))
+                TrainVectorClassifier.SetParameterString("io.out", str(model_out))
+                TrainVectorClassifier.UpdateParameters()  # Update here, otherwise features wont be recognized
+                TrainVectorClassifier.SetParameterStringList("feat", features_API)
+                TrainVectorClassifier.SetParameterString("classifier", str(method))
+
+                for key, value in model_parameters[method].items():
+                    TrainVectorClassifier.SetParameterString(
+                        str("classifier.{}.{}".format(method, key)), str(value))
+
+                TrainVectorClassifier.SetParameterStringList("cfield", ["class"])
+                TrainVectorClassifier.UpdateParameters()
+                TrainVectorClassifier.ExecuteAndWriteOutput()
+
+        elif lib == "scikit":
+            input('scikit')
+            if method == "rf" :
+
+                # Read sqlite query results into a pandas DataFrame
+                connex = sqlite3.connect(str(training_samples_extracted))
+                train_data = pd.read_sql_query("SELECT * FROM output", connex)
+
+                # Verify that result of SQL query is stored in the dataframe
+                print(train_data.tail())
+                connex.close()
+
+                # Split features and labels
+                x_train = train_data[features_API]
+                y_train = train_data["class"]
+
+                print(x_train)
+                print(y_train)
+
+                print(type(model_parameters[method]["nbtrees"]))
+                print(type(model_parameters[method]["max"]))
+                print(type(model_parameters[method]["min"]))
+
+                # Initialize the classifier with desired hyperparameters
+                rf_classifier = RandomForestClassifier(
+                    n_estimators=int(model_parameters[method]["nbtrees"]),
+                    max_depth=int(model_parameters[method]["max"]),
+                    min_samples_split=int(model_parameters[method]["min"]),
+                    random_state=42)
+
+                # Train the model
+                rf_classifier.fit(x_train, y_train)
+
+                # Save the trained model to the specified output file
+                joblib.dump(rf_classifier, str(model_out))
+
+                input('rf')
+            elif method == "svm":
+                input('svm')
+
+            else :
+                raise Exception("Unknown learning method for cloud detection")
         else:
-            TrainVectorClassifier = otbApplication.Registry.CreateApplication(
-                "TrainVectorClassifier")
-            TrainVectorClassifier.SetParameterStringList("io.vd", [str(training_samples_extracted)])
-            #~ TrainVectorClassifier.SetParameterString("io.stats", str(img_stats))
-            TrainVectorClassifier.SetParameterString("io.out", str(model_out))
-            TrainVectorClassifier.UpdateParameters()  # Update here, otherwise features wont be recognized
-            TrainVectorClassifier.SetParameterStringList("feat", features_API)
-            TrainVectorClassifier.SetParameterString("classifier", str(method))
-
-            for key, value in model_parameters[method].items():
-                TrainVectorClassifier.SetParameterString(
-                    str("classifier.{}.{}".format(method, key)), str(value))
-
-            TrainVectorClassifier.SetParameterStringList("cfield", ["class"])
-            TrainVectorClassifier.UpdateParameters()
-            TrainVectorClassifier.ExecuteAndWriteOutput()
+            raise Exception("Unknown library in global_parameters.json")
 
         print('Done')
     else:
@@ -293,6 +351,7 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
+    lib = global_parameters["classification"]["lib"]
 
     model = op.join(main_dir, 'Models', ('model.'+global_parameters["classification"]["method"]))
 
@@ -303,22 +362,74 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     mask_tif = mask_shp[0:-4] + '.tif'
 
     if proceed == True:
-        if shell == True:
-            print("  Image Classification (shell)")
-            command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
-                raw_img, model, img_labeled, confidence_map, mask_tif)
-            subprocess.call(command, shell=True)
 
-        else:
-            print("  Image Classification (API)")
-            ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
-            ImageClassifier.SetParameterString("in", str(raw_img))
-            ImageClassifier.SetParameterString("model", str(model))
-            ImageClassifier.SetParameterString("out", str(img_labeled))
-            ImageClassifier.SetParameterString("confmap", str(confidence_map))
-            ImageClassifier.SetParameterString("mask", str(mask_tif))
-            ImageClassifier.UpdateParameters()
-            ImageClassifier.ExecuteAndWriteOutput()
+        if lib == "otb":
+            if shell == True:
+                print("  Image Classification (shell)")
+                command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
+                    raw_img, model, img_labeled, confidence_map, mask_tif)
+                subprocess.call(command, shell=True)
+
+            else:
+                print("  Image Classification (API)")
+                ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
+                ImageClassifier.SetParameterString("in", str(raw_img))
+                ImageClassifier.SetParameterString("model", str(model))
+                ImageClassifier.SetParameterString("out", str(img_labeled))
+                ImageClassifier.SetParameterString("confmap", str(confidence_map))
+                ImageClassifier.SetParameterString("mask", str(mask_tif))
+                ImageClassifier.UpdateParameters()
+
+                ImageClassifier.ExecuteAndWriteOutput()
+
+        elif lib == "scikit" :
+            # Load the raw image using rasterio
+            with rasterio.open(raw_img) as src:
+                img = src.read()  # img is a 3D array: (bands, height, width)
+                transform = src.transform
+                crs = src.crs
+
+            # Load the mask image using rasterio
+            with rasterio.open(mask_tif) as mask_src:
+                mask_data = mask_src.read(1)  # Mask is a 2D array
+
+            # Apply mask
+            masked_img = np.where(mask_data == 0, np.nan, img)
+
+            # Reshape image for classification
+            n_bands, height, width = masked_img.shape
+            X = masked_img.reshape(n_bands, -1).T  # Shape: (pixels, bands)
+
+            # Remove no-data pixels
+            valid_pixels = ~np.isnan(X).any(axis=1)
+            X_valid = X[valid_pixels]
+
+            # Load the trained model
+            model = joblib.load(model)
+
+            # Classify the data
+            predictions = model.predict(X_valid)
+            probs = model.predict_proba(X_valid)
+
+            # Reconstruct the classified image
+            classified_img = np.full((height * width), np.nan)
+            classified_img[valid_pixels] = predictions
+            classified_img = classified_img.reshape(height, width)
+
+            # Reconstruct the confidence map
+            confidence = np.full((height * width), np.nan)
+            confidence[valid_pixels] = np.max(probs, axis=1)  # Confidence = max probability
+            confidence = confidence.reshape(height, width)
+
+            # Save the classified image using rasterio
+            with rasterio.open(img_labeled, 'w', driver='GTiff', height=height, width=width,
+                               count=1, dtype=classified_img.dtype, crs=crs, transform=transform) as dst:
+                dst.write(classified_img, 1)
+
+            # Save the confidence map using rasterio
+            with rasterio.open(confidence_map, 'w', driver='GTiff', height=height, width=width,
+                               count=1, dtype=confidence.dtype, crs=crs, transform=transform) as dst:
+                dst.write(confidence, 1)
 
         print('Done')
     else:

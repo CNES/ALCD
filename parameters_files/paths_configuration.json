@@ -1,6 +1,6 @@
 {
   "global_chains_paths": {
-    "L1C": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/run_alcd/inputs/s2_l1c",
+    "L1C": "/home/ecadaux/Documents/work/ALCD/data/Sentinel2/L1C",
     "maja": "/mnt/data/SENTINEL2/L2A_MAJA",
     "sen2cor": "/mnt/data/SENTINEL2/L2A_SEN2COR",
     "fmask": "/mnt/data/home/baetensl/Programs/Fmask4_output",
@@ -9,7 +9,7 @@
     "DTM_resized": "/mnt/data/home/baetensl/DTM/resized"
   },
   "data_paths": {
-    "data_alcd": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/run_alcd/inputs/s2_l1c",
+    "data_alcd": "/home/ecadaux/Documents/work/ALCD/data/Sentinel2/L1C/",
     "data_pcc": "/mnt/data/home/baetensl/clouds_detection_git/Data_PCC"
   },
   "tile_location": {
@@ -18,6 +18,7 @@
     "Briere": "30TWT",
     "Bretagne": "30UXU",
     "Alpes": "31TGL",
+    "Geneva" : "31TGM",
     "Bordeaux": "30TXQ",
     "Chateauroux": "31TCM",
     "Orleans": "31UDP",

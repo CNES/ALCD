@@ -113,6 +113,7 @@ def rasterize_shp(input_shp, out_tif, reference_tif):
     burnVal = 0  # value for the output image pixels
 
     # Get projection info from reference image
+    print(reference_tif)
     image = gdal.Open(reference_tif, gdal.GA_ReadOnly)
 
     # Open Shapefile
