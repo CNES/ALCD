@@ -29,6 +29,7 @@ import json
 import sqlite3
 import joblib
 import rasterio
+from sklearn import svm
 import pandas as pd
 
 import otbApplication
@@ -260,7 +261,6 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
         print("  Train Vector Classifier")
 
         if lib == "otb":
-            input('otb')
             if shell == True:
                 # can be run through the API or through the shell
                 command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
@@ -292,47 +292,35 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
                 TrainVectorClassifier.ExecuteAndWriteOutput()
 
         elif lib == "scikit":
-            input('scikit')
+            # Read sqlite query results into a pandas DataFrame
+            connex = sqlite3.connect(str(training_samples_extracted))
+            train_data = pd.read_sql_query("SELECT * FROM output", connex)
+            connex.close()
+
+            # Split features and labels
+            x_train = train_data[features_API]
+            y_train = train_data["class"]
+
             if method == "rf" :
-
-                # Read sqlite query results into a pandas DataFrame
-                connex = sqlite3.connect(str(training_samples_extracted))
-                train_data = pd.read_sql_query("SELECT * FROM output", connex)
-
-                # Verify that result of SQL query is stored in the dataframe
-                print(train_data.tail())
-                connex.close()
-
-                # Split features and labels
-                x_train = train_data[features_API]
-                y_train = train_data["class"]
-
-                print(x_train)
-                print(y_train)
-
-                print(type(model_parameters[method]["nbtrees"]))
-                print(type(model_parameters[method]["max"]))
-                print(type(model_parameters[method]["min"]))
-
-                # Initialize the classifier with desired hyperparameters
-                rf_classifier = RandomForestClassifier(
+                # Random forest classifier
+                classifier = RandomForestClassifier(
                     n_estimators=int(model_parameters[method]["nbtrees"]),
                     max_depth=int(model_parameters[method]["max"]),
                     min_samples_split=int(model_parameters[method]["min"]),
                     random_state=42)
 
-                # Train the model
-                rf_classifier.fit(x_train, y_train)
-
-                # Save the trained model to the specified output file
-                joblib.dump(rf_classifier, str(model_out))
-
-                input('rf')
             elif method == "svm":
-                input('svm')
+                # SVM classifier
+                classifier = svm.SVC(C = int(model_parameters["libsvm"]["c"]), kernel = model_parameters["libsvm"]["k"], probability = True)
 
             else :
                 raise Exception("Unknown learning method for cloud detection")
+
+            # Train the model
+            classifier.fit(x_train, y_train)
+
+            # Save the trained model to the specified output file
+            joblib.dump(classifier, str(model_out))
         else:
             raise Exception("Unknown library in global_parameters.json")
 
