@@ -1,7 +1,7 @@
 {
    "classification": {
-      "lib" : "scikit",
-      "method": "rf"
+      "lib": "scikit",
+      "method": "hist_grad_b"
    },
    "color_tables": {
       "otb": "color_tables/otb_table.txt"

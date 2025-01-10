@@ -24,7 +24,6 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import os
 import shutil
 import os.path as op
 from osgeo import ogr, gdal

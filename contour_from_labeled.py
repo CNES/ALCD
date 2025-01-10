@@ -25,9 +25,7 @@ License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
-import sys
 import os.path as op
-import json
 import glob
 import otbApplication
 from osgeo import gdal
