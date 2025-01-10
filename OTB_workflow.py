@@ -27,7 +27,6 @@ import os
 import os.path as op
 import json
 import sqlite3
-import time
 
 import rasterio
 import pandas as pd
@@ -297,9 +296,9 @@ def scikit_train(training_samples_extracted : str, img_stats : str, method : str
         x_train = train_data[features_API]
         y_train = train_data["class"]
 
-        dict_model = {"rf_scikit" : sk.RandomForestClassifier, "svm_scikit" : svm.SVC, "ada_boost" : sk.AdaBoostClassifier,
-                      "xtree" : sk.ExtraTreesClassifier, "grad_b" : sk.GradientBoostingClassifier,
-                      "hist_grad_b" : sk.HistGradientBoostingClassifier}
+        dict_model = {"rf_scikit" : sk.RandomForestClassifier, "svm_scikit" : svm.SVC, "ada_scikit" : sk.AdaBoostClassifier,
+                      "xtree_scikit" : sk.ExtraTreesClassifier, "grad_scikit" : sk.GradientBoostingClassifier,
+                      "hist_grad_scikit" : sk.HistGradientBoostingClassifier}
 
         classifier = dict_model[method](**model_parameters[method])
 
@@ -307,10 +306,7 @@ def scikit_train(training_samples_extracted : str, img_stats : str, method : str
         classifier.fit(x_train, y_train)
 
         # Save the trained model to the specified output file
-        # begin = time.time()
         pickle.dump(classifier, open(str(model_out), 'wb'))
-        # end = time.time()
-        # print(f"dump time  : {begin - end}")
 
 
 def train_model(global_parameters, model_parameters, shell=True, proceed=True):
@@ -319,7 +315,6 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
     method = global_parameters["classification"]["method"]
-    lib = global_parameters["classification"]["lib"]
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])
     img_stats = op.join(main_dir, 'Statistics', global_parameters["general"]["img_stats"])
@@ -327,13 +322,15 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     model_out = op.join(main_dir, 'Models', ('model.' +
                                              global_parameters["classification"]["method"]))
 
-
     kwargs = {"training_samples_extracted" : training_samples_extracted, "img_stats" : img_stats, "method" : method, "model_parameters" : model_parameters, "model_out" : model_out, "shell" : shell}
-    dict_train = {"otb": otb_train, "scikit": scikit_train}
 
     if proceed == True:
         print("  Train Vector Classifier")
-        dict_train[lib](**kwargs)
+        if "otb" in method :
+            otb_train(**kwargs)
+        else:
+            assert "scikit" in method
+            scikit_train(**kwargs)
         print('Done')
     else:
         print("Training not done this time")
@@ -389,10 +386,7 @@ def scikit_class(raw_img : str, model : str, img_labeled : str, confidence_map :
         X_valid = X[valid_pixels]
 
         # Load the trained model
-        # begin = time.time()
         model = pickle.load(open(model, 'rb'))
-        # end = time.time()
-        # print(f"load time  : {begin - end}")
 
         # Classify the data
         predictions = model.predict(X_valid)
@@ -426,7 +420,7 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
-    lib = global_parameters["classification"]["lib"]
+    method = global_parameters["classification"]["method"]
     model = op.join(main_dir, 'Models', ('model.'+global_parameters["classification"]["method"]))
 
     img_labeled = op.join(main_dir, 'Out', global_parameters["general"]["img_labeled"])
@@ -436,10 +430,13 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     mask_tif = mask_shp[0:-4] + '.tif'
 
     kwargs = {"raw_img" : raw_img, "model" : model, "img_labeled" : img_labeled, "confidence_map" : confidence_map, "mask_tif" : mask_tif, "shell" : shell}
-    dict_class = {"otb": otb_class, "scikit": scikit_class}
 
     if proceed == True:
-        dict_class[lib](**kwargs)
+        if "otb" in method :
+            otb_class(**kwargs)
+        else :
+            assert "scikit" in method
+            scikit_class(**kwargs)
         print('Done')
     else:
         print("Classification not done this time")

@@ -1,6 +1,6 @@
 {
    "classification": {
-      "method": "rf"
+      "method": "rf_otb"
    },
    "color_tables": {
       "otb": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/cfg/otb_table.txt"

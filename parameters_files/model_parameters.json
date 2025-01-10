@@ -1,4 +1,4 @@
-{    
+{
  "comments" : {
 	"-classifier":"             <string>         Classifier to use for the training [libsvm/boost/dt/gbt/ann/bayes/rf/knn] (mandatory, default value is libsvm)",
         "-classifier.libsvm.k":"    <string>         SVM Kernel Type [linear/rbf/poly/sigmoid] (mandatory, default value is linear)",
@@ -89,7 +89,7 @@
 		"eps" : "0.01",
 		"iter" : "1000"
 	},
-	
+
    	"rf_otb" : {
 		"max":"25",
 		"min" : "25",
@@ -125,25 +125,24 @@
 		"iter" : "1000"
 	},
 
-	"ada_boost" : {
+	"ada_scikit" : {
 		"n_estimators" : 100,
 		"learning_rate" : 1.0,
 		"random_state" : 42
 	},
 
-	"xtree" : {
+	"xtree_scikit" : {
 		"n_estimators" : 100,
 		"criterion" : "log_loss",
 		"random_state" : 42
 	},
 
-   	"grad_b" : {
+   	"grad_scikit" : {
 		"loss" : "log_loss",
 		"n_estimators" : 100
 	},
-	"hist_grad_b" : {
+	"hist_scikit" : {
 		"loss" : "log_loss",
 		"max_iter" : 100
 	}
-
 }

@@ -61,7 +61,6 @@ def create_all_quicklook(location, out_dir, paths_parameters):
         os.makedirs(out_dir)
 
     all_dates = find_directory_names.get_all_dates(location, paths_parameters)
-    print(all_dates)
     nb_total_dates = len(all_dates)
     k = 0
     for current_date in all_dates:
@@ -80,7 +79,6 @@ def create_all_quicklook(location, out_dir, paths_parameters):
         in_jp2s = [R, G, B]
 
         out_jpg = op.join(out_dir, (location+'_'+date+'.jpg'))
-        print(out_jpg)
         create_jpg(in_jp2s, out_jpg)
 
         k += 1

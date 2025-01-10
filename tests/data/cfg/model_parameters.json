@@ -1,4 +1,4 @@
-{    
+{
  "comments" : {
 	"-classifier":"             <string>         Classifier to use for the training [libsvm/boost/dt/gbt/ann/bayes/rf/knn] (mandatory, default value is libsvm)",
         "-classifier.libsvm.k":"    <string>         SVM Kernel Type [linear/rbf/poly/sigmoid] (mandatory, default value is linear)",
@@ -45,7 +45,7 @@
 
 },
 
-   	"libsvm" : {
+   	"svm_otb" : {
 		"k":"linear",
 		"m" : "csvc",
 		"c" : "1",
@@ -53,33 +53,31 @@
 		"prob" : "false"
 	},
 
-   	"boost" : {
+	"svm_scikit" : {
+		"kernel":"linear",
+		"C" : 1.0,
+		"probability" : true
+	},
+
+   	"boost_otb" : {
 		"t":"real",
 		"w" : "100",
 		"r" : "0.95",
 		"m" : "1"
 	},
 
-   	"dt" : {
+   	"dt_otb" : {
 		"max":"65535",
 		"min" : "10",
 		"ra" : "0.01",
 		"cat" : "10",
-		"f" : "10",
 		"r" : "false",
 		"t" : "false"
 	},
 
-   	"gbt" : {
-		"w":"200",
-		"s" : "0.01",
-		"p" : "0.8",
-		"max" : "3"
-	},
-
-   	"ann" : {
+   	"ann_otb" : {
 		"t":"reg",
-		"sizes" : "20",
+		"sizes" : "30",
 		"f":"sig",
 		"a" : "1",
 		"b" : "1",
@@ -91,8 +89,8 @@
 		"eps" : "0.01",
 		"iter" : "1000"
 	},
-	
-   	"rf" : {
+
+   	"rf_otb" : {
 		"max":"25",
 		"min" : "25",
 		"ra":"0",
@@ -102,9 +100,49 @@
 		"acc" : "0.01"
 	},
 
-   	"knn" : {
+	"rf_scikit" : {
+		"n_estimators":100,
+		"max_depth" : 25,
+		"min_samples_split":25,
+		"random_state" : 42
+	},
+
+   	"knn_otb" : {
 		"k":"32"
+	},
+	"ann_otb" : {
+		"t":"reg",
+		"sizes" : "30",
+		"f":"sig",
+		"a" : "1",
+		"b" : "1",
+		"bpdw":"0.1",
+		"bpms" : "0.1",
+		"rdw":"0.1",
+		"rdwm" : "1e-07",
+		"term" : "all",
+		"eps" : "0.01",
+		"iter" : "1000"
+	},
+
+	"ada_scikit" : {
+		"n_estimators" : 100,
+		"learning_rate" : 1.0,
+		"random_state" : 42
+	},
+
+	"xtree_scikit" : {
+		"n_estimators" : 100,
+		"criterion" : "log_loss",
+		"random_state" : 42
+	},
+
+   	"grad_scikit" : {
+		"loss" : "log_loss",
+		"n_estimators" : 100
+	},
+	"hist_scikit" : {
+		"loss" : "log_loss",
+		"max_iter" : 100
 	}
-
-
 }
