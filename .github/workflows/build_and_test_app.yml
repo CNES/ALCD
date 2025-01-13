@@ -4,10 +4,9 @@
 name: ALCD
 
 on:
-  push:
-    branches: [ "add_doc" ]
   pull_request:
-    branches: [ "add_doc" ]
+    branches:
+      - "new_add_doc"
 
 permissions:
   contents: read
