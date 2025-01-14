@@ -499,14 +499,11 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
-    input('hey1')
     user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
                  fct_path = global_parameters["user_choices"]["user_primitive"],
                  location = global_parameters["user_choices"]["location"],
                  user_path = out_all_bands_tif)
-
-    input('hey2')
 
     return
 

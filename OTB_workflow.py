@@ -397,7 +397,6 @@ def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : st
         ImageClassifier.UpdateParameters()
 
         ImageClassifier.ExecuteAndWriteOutput()
-        input("end")
 
 def scikit_class(raw_img : xr.DataArray, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
     if not (shell):

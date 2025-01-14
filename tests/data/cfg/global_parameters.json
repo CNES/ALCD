@@ -111,6 +111,7 @@
       "location": "Toulouse",
       "main_dir": "/home/ecadaux/Documents/work/ALCD/tests/data/Toulouse_31TCJ_20240305",
       "raw_img": "Toulouse_bands_ROI.tif",
+      "users_img" : "Toulouse_user_bands.tif",
       "tile": "31TCJ"
    }
 }
