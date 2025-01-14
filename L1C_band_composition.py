@@ -25,7 +25,12 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
 import os.path as op
+import sys
+
 import otbApplication
+import importlib.util
+import string
+import secrets
 import find_directory_names
 import glob
 import json
@@ -33,6 +38,8 @@ import shutil
 import subprocess
 import tempfile
 import argparse
+import rasterio
+import rioxarray
 
 
 def create_composit_band(bands_full_paths, out_tif, resolution=60, composit_type='ND'):
@@ -293,6 +300,72 @@ def resize_band(in_band, out_band, pixelresX, pixelresY):
     os.system(build_warp)
 
 
+def load_module(source, module_name=None):
+    """
+    reads file source and loads it as a module
+
+    :param source: file to load
+    :param module_name: name of module to register in sys.modules
+    :return: loaded module
+    """
+
+    if module_name is None:
+        alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        symbol = "".join([secrets.choice(alphabet) for i in range(32)])
+
+        module_name = "gensym_" + symbol
+
+    spec = importlib.util.spec_from_file_location(module_name, source)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    return module
+
+def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user_path: str):
+    """
+    Rename bands so the user knows which band is which
+
+    TO DO
+    """
+    with rioxarray.open_rasterio(raw_img) as raw_arr:
+
+        # Read .txt file with band description
+        bands_dict = {}
+        band_descr = op.join(main_dir, 'In_data', 'Image', location + "_bands_bands.txt")
+
+        # Extract each band name
+        with open(band_descr, 'r') as f:
+            for line in f:
+                band, path = line.strip().split(" : ")
+                band_name = path.split(".tif")[0].split("Intermediate/")[-1]
+                if ("_B") in band_name:
+                    band_name = band_name.split("_")[-1]
+                bands_dict[band] = band_name
+
+        # Rename xarray's bands according to the .txt file
+        bands_list = list(bands_dict.values())
+        out_arr = raw_arr.assign_coords(band=bands_list)
+
+    # Apply user's function
+    user_module = load_module(fct_path)
+
+    # Warning : user's function has to be named my_process
+    users_arr = user_module.my_process(out_arr)
+
+    n_bands, height, width = users_arr.shape
+    # Save user's xarray on disk
+    with rasterio.open(user_path, 'w', driver='GTiff', height=height, width=width,
+                       count=n_bands, dtype=out_arr.dtype, crs=out_arr.rio.crs,
+                       transform=out_arr.rio.transform()) as dst:
+        for i in range(n_bands):
+            dst.write(users_arr[i], i + 1)
+
+    ###### CHANGE TXT file
+    #TO DO
+
+    return users_arr
+
 def create_image_compositions(global_parameters, location, paths_parameters, current_date, heavy=False, force=False):
     #
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
@@ -425,6 +498,15 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths.extend(additional_bands)
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
+
+    input('hey1')
+    user_process(raw_img = out_all_bands_tif,
+                 main_dir = global_parameters["user_choices"]["main_dir"],
+                 fct_path = global_parameters["user_choices"]["user_primitive"],
+                 location = global_parameters["user_choices"]["location"],
+                 user_path = out_all_bands_tif)
+
+    input('hey2')
 
     return
 

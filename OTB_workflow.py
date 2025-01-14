@@ -27,13 +27,19 @@ import os
 import os.path as op
 import json
 import sqlite3
+import string
+import sys
+import secrets
+import xarray as xr
 
 import rasterio
+import rioxarray
 import pandas as pd
 
 import otbApplication
 import numpy as np
 import csv
+import importlib.util
 import subprocess
 import pickle
 import xml.etree.ElementTree as ET
@@ -232,6 +238,32 @@ def extract_samples(global_parameters, proceed=True):
 
 # -------- 2. MODEL TRAINING ---------------------
 
+
+def load_module(source, module_name=None):
+    """
+    reads file source and loads it as a module
+
+    :param source: file to load
+    :param module_name: name of module to register in sys.modules
+    :return: loaded module
+    """
+
+    if module_name is None:
+        alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        symbol = "".join([secrets.choice(alphabet) for i in range(32)])
+
+        module_name = "gensym_" + symbol
+
+    spec = importlib.util.spec_from_file_location(module_name, source)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    return module
+
+
+# -------- 2. MODEL TRAINING ---------------------
+
 def otb_train(training_samples_extracted : str, img_stats : str, method : str, model_parameters : dict, model_out : str, shell : bool):
     features = ''
     features_API = []
@@ -342,6 +374,7 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
 
 
 def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
+
     if shell == True:
         print("  Image Classification (shell)")
         command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
@@ -350,8 +383,13 @@ def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : st
 
     else:
         print("  Image Classification (API)")
+        # raw_np = raw_img.values.transpose(1, 2, 0)
+        # print("shape raw_np : {}".format(raw_np.shape))
+
         ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
         ImageClassifier.SetParameterString("in", str(raw_img))
+        # ImageClassifier.SetVectorImageFromNumpyArray("in", np.ascontiguousarray(raw_np)) ## Fonctionne
+        # ImageClassifier.Execute()
         ImageClassifier.SetParameterString("model", str(model))
         ImageClassifier.SetParameterString("out", str(img_labeled))
         ImageClassifier.SetParameterString("confmap", str(confidence_map))
@@ -359,23 +397,17 @@ def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : st
         ImageClassifier.UpdateParameters()
 
         ImageClassifier.ExecuteAndWriteOutput()
+        input("end")
 
-def scikit_class(raw_img : str, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
+def scikit_class(raw_img : xr.DataArray, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
     if not (shell):
-        # Load the raw image using rasterio
-        with rasterio.open(raw_img) as src:
-            img = src.read()  # img is a 3D array: (bands, height, width)
-            transform = src.transform
-            crs = src.crs
+        raw_arr = rioxarray.open_rasterio(raw_img)
 
-        # Load the mask image using rasterio
-
-        ####ICI IMPORT DYNAMIQUE DE FONCTION
         with rasterio.open(mask_tif) as mask_src:
             mask_data = mask_src.read(1)  # Mask is a 2D array
 
         # Apply mask
-        masked_img = np.where(mask_data == 0, np.nan, img)
+        masked_img = np.where(mask_data == 0, np.nan, raw_arr)
 
         # Reshape image for classification
         n_bands, height, width = masked_img.shape
@@ -404,14 +436,84 @@ def scikit_class(raw_img : str, model : str, img_labeled : str, confidence_map :
 
         # Save the classified image using rasterio
         with rasterio.open(img_labeled, 'w', driver='GTiff', height=height, width=width,
-                           count=1, dtype=classified_img.dtype, crs=crs, transform=transform) as dst:
+                           count=1, dtype=classified_img.dtype, crs=raw_arr.rio.crs, transform=raw_arr.rio.transform()) as dst:
             dst.write(classified_img, 1)
 
         # Save the confidence map using rasterio
         with rasterio.open(confidence_map, 'w', driver='GTiff', height=height, width=width,
-                           count=1, dtype=confidence.dtype, crs=crs, transform=transform) as dst:
+                           count=1, dtype=confidence.dtype, crs=raw_arr.rio.crs, transform=raw_arr.rio.transform()) as dst:
             dst.write(confidence, 1)
 
+
+def user_process(raw_img : str, main_dir : str, fct_path : str, location : str, user_path : str):
+    """
+    Rename bands so the user knows which band is which
+
+    TO DO
+    """
+    # Load the mask image using rasterio
+
+    # en sortie d'appel à la fonction utilisateur écrire la donnée sur le disque pour imiter
+    # le comportement actuel d'ALCD et
+    # faire un fichier texte (qui contient la description de la stack) comme fait actuellement
+
+    # How to access to the path of the file that contains the bands informations that has been automatically created previously ?
+
+    # Load the raw image using rasterio
+
+    # Prepare input data  to apply user's function
+    with rioxarray.open_rasterio(raw_img) as raw_arr:
+
+        # Read .txt file with band description
+        bands_dict = {}
+        band_descr = op.join(main_dir, 'In_data', 'Image', location + "_bands_bands.txt")
+
+        # Extract each band name
+        with open(band_descr, 'r') as f:
+            for line in f:
+                band, path = line.strip().split(" : ")
+                band_name = path.split(".tif")[0].split("Intermediate/")[-1]
+                if ("_B") in band_name:
+                    band_name = band_name.split("_")[-1]
+                bands_dict[band] = band_name
+
+        # Rename xarray's bands according to the .txt file
+        bands_list = list(bands_dict.values())
+        out_arr = raw_arr.assign_coords(band=bands_list)
+
+    # Apply user's function
+    user_module = load_module(fct_path)
+
+    # Warning : user's function has to be named my_process
+    users_arr = user_module.my_process(out_arr)
+
+    n_bands, height, width = users_arr.shape
+    # Save user's xarray on disk
+    with rasterio.open(user_path, 'w', driver='GTiff', height=height, width=width,
+                       count=n_bands, dtype=out_arr.dtype, crs=out_arr.rio.crs, transform=out_arr.rio.transform()) as dst:
+        for i in range(n_bands):
+            dst.write(users_arr[i], i + 1)
+
+    # Edit .txt file to match user's array
+    new_blist = users_arr.coords['band'].values
+
+    #TO DO
+
+    # new_txt = ""
+    # with open(band_descr, 'r') as f:
+    #     # print(f.read())
+    #     # f.write(f.read())
+    #     for line in f:
+    #         band_line = line.strip()
+    #
+    #         for arr_band in new_blist :
+    #             if arr_band in band_line :
+    #                 new_txt +
+    #                 break
+    #
+    #         input('uidvu')
+
+    return users_arr
 
 def image_classification(global_parameters, shell=True, proceed=True, additional_name=''):
     '''
@@ -419,6 +521,8 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
+    user_path = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["users_img"])
+    fct_path = global_parameters["user_choices"]["user_primitive"]
 
     method = global_parameters["classification"]["method"]
     model = op.join(main_dir, 'Models', ('model.'+global_parameters["classification"]["method"]))
@@ -429,7 +533,11 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     mask_shp = op.join(main_dir, 'In_data', 'Masks', global_parameters["general"]["no_data_mask"])
     mask_tif = mask_shp[0:-4] + '.tif'
 
-    kwargs = {"raw_img" : raw_img, "model" : model, "img_labeled" : img_labeled, "confidence_map" : confidence_map, "mask_tif" : mask_tif, "shell" : shell}
+    # User primitive
+    # users_arr = user_process(raw_img, main_dir, fct_path, global_parameters["user_choices"]["location"], user_path)
+
+    kwargs = {"raw_img": raw_img, "model": model, "img_labeled": img_labeled, "confidence_map": confidence_map,
+              "mask_tif": mask_tif, "shell": shell}
 
     if proceed == True:
         if "otb" in method :
