@@ -238,43 +238,13 @@ def extract_samples(global_parameters, proceed=True):
 
 # -------- 2. MODEL TRAINING ---------------------
 
-
-def load_module(source, module_name=None):
-    """
-    reads file source and loads it as a module
-
-    :param source: file to load
-    :param module_name: name of module to register in sys.modules
-    :return: loaded module
-    """
-
-    if module_name is None:
-        alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
-        symbol = "".join([secrets.choice(alphabet) for i in range(32)])
-
-        module_name = "gensym_" + symbol
-
-    spec = importlib.util.spec_from_file_location(module_name, source)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-
-    return module
-
-
-# -------- 2. MODEL TRAINING ---------------------
-
-def otb_train(training_samples_extracted : str, img_stats : str, method : str, model_parameters : dict, model_out : str, shell : bool):
-    features = ''
-    features_API = []
-    nb_feat = get_bands_qty(img_stats)
-
-    for b in range(nb_feat):
-        features += (" band_" + str(b))
-        features_API.append("band_" + str(b))
-    features = features[1:]
+def otb_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : bool):
+    connex = sqlite3.connect(str(training_samples_extracted))
+    train_data = pd.read_sql_query("SELECT * FROM output", connex)
+    features_API = list(train_data.columns)[4:]
 
     if shell == True:
+        features = ' '.join(features_API)
 
         otb_method = {"rf_otb" : "rf", "svm_otb" : "libsvm", "boost_otb" : "boost", "dt_otb" : "dt", "gbt_otb" : "gbt", "knn_otb" : "knn"}
 
@@ -310,19 +280,12 @@ def otb_train(training_samples_extracted : str, img_stats : str, method : str, m
         TrainVectorClassifier.ExecuteAndWriteOutput()
 
 
-def scikit_train(training_samples_extracted : str, img_stats : str, method : str, model_parameters : dict, model_out : str, shell : False):
+def scikit_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : False):
     if not(shell) :
         # Read sqlite query results into a pandas DataFrame
-        features_API = []
-        nb_feat = get_bands_qty(img_stats)
-
-        for b in range(nb_feat):
-            features_API.append("band_" + str(b))
-        features_API = [str(f) for f in features_API]
-
         connex = sqlite3.connect(str(training_samples_extracted))
         train_data = pd.read_sql_query("SELECT * FROM output", connex)
-        connex.close()
+        features_API = list(train_data.columns)[4:]
 
         # Split features and labels
         x_train = train_data[features_API]
@@ -354,7 +317,7 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     model_out = op.join(main_dir, 'Models', ('model.' +
                                              global_parameters["classification"]["method"]))
 
-    kwargs = {"training_samples_extracted" : training_samples_extracted, "img_stats" : img_stats, "method" : method, "model_parameters" : model_parameters, "model_out" : model_out, "shell" : shell}
+    kwargs = {"training_samples_extracted" : training_samples_extracted, "method" : method, "model_parameters" : model_parameters, "model_out" : model_out, "shell" : shell}
 
     if proceed == True:
         print("  Train Vector Classifier")
@@ -383,13 +346,9 @@ def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : st
 
     else:
         print("  Image Classification (API)")
-        # raw_np = raw_img.values.transpose(1, 2, 0)
-        # print("shape raw_np : {}".format(raw_np.shape))
 
         ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
         ImageClassifier.SetParameterString("in", str(raw_img))
-        # ImageClassifier.SetVectorImageFromNumpyArray("in", np.ascontiguousarray(raw_np)) ## Fonctionne
-        # ImageClassifier.Execute()
         ImageClassifier.SetParameterString("model", str(model))
         ImageClassifier.SetParameterString("out", str(img_labeled))
         ImageClassifier.SetParameterString("confmap", str(confidence_map))
@@ -444,75 +403,6 @@ def scikit_class(raw_img : xr.DataArray, model : str, img_labeled : str, confide
             dst.write(confidence, 1)
 
 
-def user_process(raw_img : str, main_dir : str, fct_path : str, location : str, user_path : str):
-    """
-    Rename bands so the user knows which band is which
-
-    TO DO
-    """
-    # Load the mask image using rasterio
-
-    # en sortie d'appel à la fonction utilisateur écrire la donnée sur le disque pour imiter
-    # le comportement actuel d'ALCD et
-    # faire un fichier texte (qui contient la description de la stack) comme fait actuellement
-
-    # How to access to the path of the file that contains the bands informations that has been automatically created previously ?
-
-    # Load the raw image using rasterio
-
-    # Prepare input data  to apply user's function
-    with rioxarray.open_rasterio(raw_img) as raw_arr:
-
-        # Read .txt file with band description
-        bands_dict = {}
-        band_descr = op.join(main_dir, 'In_data', 'Image', location + "_bands_bands.txt")
-
-        # Extract each band name
-        with open(band_descr, 'r') as f:
-            for line in f:
-                band, path = line.strip().split(" : ")
-                band_name = path.split(".tif")[0].split("Intermediate/")[-1]
-                if ("_B") in band_name:
-                    band_name = band_name.split("_")[-1]
-                bands_dict[band] = band_name
-
-        # Rename xarray's bands according to the .txt file
-        bands_list = list(bands_dict.values())
-        out_arr = raw_arr.assign_coords(band=bands_list)
-
-    # Apply user's function
-    user_module = load_module(fct_path)
-
-    # Warning : user's function has to be named my_process
-    users_arr = user_module.my_process(out_arr)
-
-    n_bands, height, width = users_arr.shape
-    # Save user's xarray on disk
-    with rasterio.open(user_path, 'w', driver='GTiff', height=height, width=width,
-                       count=n_bands, dtype=out_arr.dtype, crs=out_arr.rio.crs, transform=out_arr.rio.transform()) as dst:
-        for i in range(n_bands):
-            dst.write(users_arr[i], i + 1)
-
-    # Edit .txt file to match user's array
-    new_blist = users_arr.coords['band'].values
-
-    #TO DO
-
-    # new_txt = ""
-    # with open(band_descr, 'r') as f:
-    #     # print(f.read())
-    #     # f.write(f.read())
-    #     for line in f:
-    #         band_line = line.strip()
-    #
-    #         for arr_band in new_blist :
-    #             if arr_band in band_line :
-    #                 new_txt +
-    #                 break
-    #
-    #         input('uidvu')
-
-    return users_arr
 
 def image_classification(global_parameters, shell=True, proceed=True, additional_name=''):
     '''
@@ -531,9 +421,6 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
 
     mask_shp = op.join(main_dir, 'In_data', 'Masks', global_parameters["general"]["no_data_mask"])
     mask_tif = mask_shp[0:-4] + '.tif'
-
-    # User primitive
-    # users_arr = user_process(raw_img, main_dir, fct_path, global_parameters["user_choices"]["location"], user_path)
 
     kwargs = {"raw_img": raw_img, "model": model, "img_labeled": img_labeled, "confidence_map": confidence_map,
               "mask_tif": mask_tif, "shell": shell}
@@ -565,8 +452,8 @@ def confidence_map_viz(global_parameters, additional_name=''):
         confidence_map_in, confidence_map_out, median_radius=11)
 
     return
-# -------- 3. POST-PROCESSING ---------------------
 
+# -------- 3. POST-PROCESSING ---------------------
 
 def fancy_classif_viz(global_parameters, proceed=True):
     '''

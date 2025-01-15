@@ -304,11 +304,11 @@ def load_module(source, module_name=None):
     """
     reads file source and loads it as a module
 
-    :param source: file to load
-    :param module_name: name of module to register in sys.modules
-    :return: loaded module
-    """
+    source : user's file to load
+    module_name : name of module to register in sys.modules
 
+    Return: loaded module
+    """
     if module_name is None:
         alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
         symbol = "".join([secrets.choice(alphabet) for i in range(32)])
@@ -324,9 +324,36 @@ def load_module(source, module_name=None):
 
 def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user_path: str):
     """
-    Rename bands so the user knows which band is which
+    Process an input raster image :
+    - Rename the bands knows how to apply its process
+    - Apply the user-defined function
+    - Save the result and update band description txt file.
 
-    TO DO
+    Parameters:
+    ----------
+    raw_img : str
+        Path to the input raster image in GeoTIFF format.
+
+    main_dir : str
+        The main directory containing project files.
+
+    fct_path : str
+        Path to the Python file containing the user's primitive.
+        The function must be named `my_process` and take a `xarray.DataArray` as input and returns a modified xarray.DataArray.
+
+    location : str
+        A string representing the location identifier used to locate the band description file.
+
+    user_path : str
+        Path where the output raster image will be saved.
+
+    Returns:
+    -------
+    xarray.DataArray
+        The processed raster data as a xarray.DataArray.
+
+    Assumptions:
+    - The user's function accepts an xarray.DataArray and returns a modified xarray.DataArray.
     """
     with rioxarray.open_rasterio(raw_img) as raw_arr:
 
@@ -352,6 +379,7 @@ def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user
 
     # Warning : user's function has to be named my_process
     users_arr = user_module.my_process(out_arr)
+    new_bands_list = list(users_arr.coords['band'].values)
 
     n_bands, height, width = users_arr.shape
     # Save user's xarray on disk
@@ -361,8 +389,10 @@ def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user
         for i in range(n_bands):
             dst.write(users_arr[i], i + 1)
 
-    ###### CHANGE TXT file
-    #TO DO
+    #Update the band description txt file
+    with open(band_descr, 'w') as f:
+        for b in range(len(new_bands_list)) :
+            f.write(f"B{b + 1} : {new_bands_list[b]}\n")
 
     return users_arr
 
