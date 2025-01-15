@@ -322,7 +322,7 @@ def load_module(source, module_name=None):
 
     return module
 
-def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user_path: str):
+def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str, location: str, user_path: str):
     """
     Process an input raster image :
     - Rename the bands knows how to apply its process
@@ -353,7 +353,7 @@ def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user
         The processed raster data as a xarray.DataArray.
 
     Assumptions:
-    - The user's function accepts an xarray.DataArray and returns a modified xarray.DataArray.
+    - The user's function accepts a xarray.DataArray and returns a modified xarray.DataArray.
     """
     with rioxarray.open_rasterio(raw_img) as raw_arr:
 
@@ -375,10 +375,11 @@ def user_process(raw_img: str, main_dir: str, fct_path: str, location: str, user
         out_arr = raw_arr.assign_coords(band=bands_list)
 
     # Apply user's function
-    user_module = load_module(fct_path)
+    user_module = load_module(module_path)
 
     # Warning : user's function has to be named my_process
-    users_arr = user_module.my_process(out_arr)
+    user_function = getattr(user_module, fct_name)
+    users_arr = user_function(out_arr)
     new_bands_list = list(users_arr.coords['band'].values)
 
     n_bands, height, width = users_arr.shape
@@ -531,7 +532,8 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
 
     user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
-                 fct_path = global_parameters["user_choices"]["user_primitive"],
+                 module_path = global_parameters["user_choices"]["user_module"],
+                 fct_name = global_parameters["user_choices"]["user_function"],
                  location = global_parameters["user_choices"]["location"],
                  user_path = out_all_bands_tif)
 

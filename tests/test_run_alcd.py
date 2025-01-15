@@ -23,7 +23,11 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 
 import json
 import shutil
+import rasterio
+import sqlite3
 import subprocess
+import pandas as pd
+import os.path as op
 from pathlib import Path
 
 from conftest import ALCDTestsData
@@ -73,6 +77,37 @@ def check_expected_features_alcd(
     for expected_file in expected_files:
         files_exists[expected_file] = expected_file in content
     return all(list(files_exists.values())), files_exists
+
+
+def check_expected_features_content_alcd(
+        feat_dir: Path
+) -> tuple[bool, dict]:
+    """Check expected alcd features content generation files."""
+
+    # Extract the number of bands in the user's data
+    band_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands_bands.txt")
+    training_samples_extracted = op.join(feat_dir,  "Samples", "training_samples_extracted.sqlite")
+    tif_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands.tif")
+    with rasterio.open(tif_path) as src:
+        exp_nband = src.count
+
+    # Open .txt file, check if the number of lines is equal to the number of bands of the tif image
+    # and that they start with B{b}
+    with open(band_path, 'r') as f:
+        b = 1
+        lines = f.readlines()
+        assert exp_nband == len(lines)
+        for line in f:
+            band, path = line.strip().split(" : ")
+            assert band == f"B{b}"
+            b +=1
+
+    connex = sqlite3.connect(str(training_samples_extracted))
+    train_data = pd.read_sql_query("SELECT * FROM output", connex)
+    bands_sqlite = list(train_data.columns)[4:]
+    assert len(bands_sqlite) == exp_nband
+
+    return
 
 
 def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str) -> tuple[Path, Path]:
@@ -177,6 +212,41 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
         alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305" / "Out")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
 
+
+def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
+    """
+    Tests the execution of the ALCD pipeline by running the main ALCD
+    script with specific parameters.
+
+    Parameters
+    ----------
+    alcd_paths : ALCDTestsData
+        An object containing paths related to the project, such as configuration
+        and data directories.
+
+    Raises
+    ------
+    AssertionError
+        If the ALCD process fails (i.e., returns a non-zero exit code).
+    """
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths,
+                                                           alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305", "rf_scikit")
+
+    cmd1 = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
+    cmd2 = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
+    proc = subprocess.Popen(
+        cmd1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    proc = subprocess.Popen(
+        cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    out, _ = proc.communicate()
+    assert proc.returncode == 0, out.decode('utf-8')
+    alcd_results, details = check_expected_alcd_results(
+        alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305" / "Out")
+    assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
+
+    check_expected_features_content_alcd(alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305")
 
 def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
     """

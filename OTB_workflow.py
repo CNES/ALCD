@@ -27,9 +27,6 @@ import os
 import os.path as op
 import json
 import sqlite3
-import string
-import sys
-import secrets
 import xarray as xr
 
 import rasterio
@@ -39,7 +36,6 @@ import pandas as pd
 import otbApplication
 import numpy as np
 import csv
-import importlib.util
 import subprocess
 import pickle
 import xml.etree.ElementTree as ET
@@ -312,7 +308,6 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     method = global_parameters["classification"]["method"]
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])
-    img_stats = op.join(main_dir, 'Statistics', global_parameters["general"]["img_stats"])
 
     model_out = op.join(main_dir, 'Models', ('model.' +
                                              global_parameters["classification"]["method"]))
@@ -410,8 +405,6 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
-    user_path = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["users_img"])
-    fct_path = global_parameters["user_choices"]["user_primitive"]
 
     method = global_parameters["classification"]["method"]
     model = op.join(main_dir, 'Models', ('model.'+global_parameters["classification"]["method"]))
