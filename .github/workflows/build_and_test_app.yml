@@ -43,8 +43,8 @@ jobs:
         source /opt/otb/otbenv.profile
         sh /opt/otb/recompile_bindings.sh
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test with pytest
+        if [ -f docker/requirements.txt ]; then pip install -r docker/requirements.txt; fi
+    - name: pytest
       run: |
         cd tests
         export CMAKE_PREFIX_PATH=/opt/otb
