@@ -1,0 +1,118 @@
+{
+   "classification": {
+      "method": "rf_otb"
+   },
+   "color_tables": {
+      "otb": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/ALCD/tests/data/cfg/otb_table.txt"
+   },
+   "features": {
+      "DTM": "True",
+      "original_bands": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "10",
+         "11",
+         "12"
+      ],
+      "ratios": ["2_4"],
+      "special_indices": [
+         "NDVI",
+         "NDWI",
+         "NDCI",
+         "NDSI"
+      ],
+      "textures": "True",
+      "time_difference_bands": [
+         "1",
+         "2",
+         "3",
+         "4",
+         "5",
+         "6",
+         "7",
+         "8",
+         "9",
+         "11",
+         "12"
+      ]
+   },
+   "general": {
+      "class_stats": "class_stats.xml",
+      "img_labeled": "labeled_img.tif",
+      "img_labeled_regularized": "labeled_img_regular.tif",
+      "img_stats": "img_stats.xml",
+      "merged_layers": "merged.shp",
+      "no_data_mask": "no_data.shp",
+      "training_samples_extracted": "training_samples_extracted_user_prim.sqlite",
+      "training_samples_location": "training_samples_location_user_prim.sqlite",
+      "training_sampling": "smallest",
+      "training_shp": "train_points.shp",
+      "training_shp_extended": "train_points_ext.shp",
+      "validation_shp": "validation_points.shp",
+      "validation_shp_extended": "validation_points_ext.shp"
+   },
+   "local_paths": {
+      "copy_folder": "/home/hagolle/DONNEES/ALCD/",
+      "current_server": "hagolleo@s2calc.cesbio.cnes.fr:/"
+   },
+   "masks": {
+      "background": {
+         "class": "1",
+         "shp": "background.shp"
+      },
+      "clouds_shadows": {
+         "class": "4",
+         "shp": "clouds_shadows.shp"
+      },
+      "high_clouds": {
+         "class": "3",
+         "shp": "high_clouds.shp"
+      },
+      "land": {
+         "class": "5",
+         "shp": "land.shp"
+      },
+      "low_clouds": {
+         "class": "2",
+         "shp": "low_clouds.shp"
+      },
+      "snow": {
+         "class": "7",
+         "shp": "snow.shp"
+      },
+      "water": {
+         "class": "6",
+         "shp": "water.shp"
+      }
+   },
+   "postprocessing": {
+      "binary_confusion_matrix": "bin_confusion_matrix.csv",
+      "confusion_matrix": "confusion_matrix.csv",
+      "model_metrics": "model_metrics.csv"
+   },
+   "training_parameters": {
+      "Kfold": "10",
+      "dilatation_radius": "2",
+      "expansion_distance": "100",
+      "regularization_radius": "1",
+      "training_proportion": "0.9"
+   },
+   "user_choices": {
+      "user_module" : "/home/ecadaux/Documents/work/ALCD/users_function.py",
+      "user_function" : "my_process",
+      "clear_date": "20240120",
+      "current_date": "20240305",
+      "location": "Toulouse",
+      "main_dir": "/home/ecadaux/Documents/work/ALCD/tests/data/Toulouse_31TCJ_20240305",
+      "raw_img": "Toulouse_bands.tif",
+      "users_img" : "Toulouse_user_bands.tif",
+      "tile": "31TCJ"
+   }
+}
