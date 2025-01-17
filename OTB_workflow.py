@@ -212,8 +212,6 @@ def extract_samples(global_parameters, proceed=True):
     '''
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
-    print(raw_img)
-    input('zobii')
 
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])

@@ -25,18 +25,12 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import importlib
-import secrets
-import string
-import sys
 import os
 import os.path as op
 import json
 import shutil
 import argparse
 import tempfile
-import rioxarray
-import rasterio
 
 import OTB_workflow
 import masks_preprocessing
@@ -161,11 +155,9 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                               ["main_dir"], 'In_data', 'used_global_parameters.json')
                 shutil.copyfile(src, dst)
 
-                print("la")
                 # Create the images .tif and .jp2, i.e. the features
                 L1C_band_composition.create_image_compositions(
                     global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
-                print("ici")
 
                 # Create the empty layers
                 layers_creation.create_all_classes_empty_layers(global_parameters, force=force)

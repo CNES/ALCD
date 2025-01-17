@@ -35,7 +35,6 @@ import find_directory_names
 import glob
 import json
 import shutil
-import subprocess
 import tempfile
 import argparse
 import rasterio
@@ -485,8 +484,7 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
 
     out_all_bands_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
-    print(out_all_bands_tif)
-    input('iciiii')
+
     # add all the additional bands after the ones of the cloudy dates
     intermediate_sizes_paths.extend(additional_bands)
     intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
@@ -534,9 +532,7 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
-
-    if "user_module" in list(global_parameters["user_choices"].keys()) :
-        print("ENTERED"*20)
+    if "user_function" in list(global_parameters["user_choices"].keys()) :
         user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
                  module_path = global_parameters["user_choices"]["user_module"],
