@@ -6,3 +6,4 @@ scikit-learn
 pandas
 rasterio
 pytest-cov
+xarray
