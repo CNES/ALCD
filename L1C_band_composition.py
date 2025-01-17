@@ -338,7 +338,6 @@ def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str,
 
     fct_path : str
         Path to the Python file containing the user's primitive.
-        The function must be named `my_process` and take a `xarray.DataArray` as input and returns a modified xarray.DataArray.
 
     location : str
         A string representing the location identifier used to locate the band description file.
