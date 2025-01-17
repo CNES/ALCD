@@ -399,11 +399,9 @@ def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str,
     return users_arr
 
 def create_image_compositions(global_parameters, location, paths_parameters, current_date, heavy=False, force=False):
-    #
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                   'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
-    print(global_parameters["user_choices"]["main_dir"])
     if op.exists(potential_final_tif) and force == False:
         print('TIF already present, use -force to erase and replace')
         return

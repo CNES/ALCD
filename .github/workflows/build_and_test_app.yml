@@ -32,7 +32,10 @@ jobs:
         source /opt/otb/otbenv.profile
         sh /opt/otb/recompile_bindings.sh
         python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install pytest pytest-cov
+        pip install rasterio
+        pip install pandas
+        pip install -U scikit-learn
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |

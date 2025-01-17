@@ -171,7 +171,6 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
     output_dir = alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305"
-
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
@@ -202,7 +201,6 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
     output_dir = alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305"
-
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
@@ -270,8 +268,6 @@ def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
     output_dir = alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305"
-    shutil.copytree(alcd_paths.reference_run, output_dir, dirs_exist_ok=True)
-
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -force True -f 1 -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
@@ -301,8 +297,6 @@ def test_quicklook(alcd_paths: ALCDTestsData) -> None:
         If the quicklook generation process fails (i.e., returns a non-zero exit code).
     """
     output_dir = alcd_paths.data_dir / "test_quicklooks" / "Toulouse_31TCJ_20240305"
-    shutil.copytree(alcd_paths.reference_run, output_dir, dirs_exist_ok=True)
-
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {paths_param_file}"
