@@ -22,6 +22,7 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 
 import json
+import os
 import shutil
 import rasterio
 import sqlite3
@@ -86,7 +87,8 @@ def check_expected_features_content_alcd(
 
     # Extract the number of bands in the user's data
     band_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands_bands.txt")
-    training_samples_extracted = op.join(feat_dir,  "Samples", "training_samples_extracted.sqlite")
+    training_samples_extracted = op.join(feat_dir,  "Samples", "training_samples_extracted_user_prim.sqlite")
+    
     tif_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands.tif")
     with rasterio.open(tif_path) as src:
         exp_nband = src.count
@@ -110,7 +112,7 @@ def check_expected_features_content_alcd(
     return
 
 
-def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str) -> tuple[Path, Path]:
+def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str, global_param_file : str = "global_parameters.json") -> tuple[Path, Path]:
     """
     Prepares the test directory by copying reference data and updating configuration files.
 
@@ -128,13 +130,13 @@ def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str) 
         A tuple containing the paths to the modified `global_parameters.json` and
         `paths_configuration.json` files.
     """
-
     shutil.copytree(alcd_paths.reference_run, output_dir, dirs_exist_ok=True)
+    input('stop')
 
     with open(alcd_paths.cfg / "paths_configuration.json", "r",
               encoding="utf-8") as parameters_file:
         paths_parameters = json.load(parameters_file)
-    with open(alcd_paths.cfg / "global_parameters.json", "r", encoding="utf-8") as parameters_file:
+    with open(alcd_paths.cfg / global_param_file, "r", encoding="utf-8") as parameters_file:
         global_parameters = json.load(parameters_file)
 
     paths_parameters["global_chains_paths"]["L1C"] = str(alcd_paths.s2_data)
@@ -143,7 +145,12 @@ def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str) 
     global_parameters["user_choices"]["main_dir"] = str(output_dir)
     global_parameters["classification"]["method"] = str(method)
 
-    out_global_parameters = output_dir / "global_parameters.json"
+    out_global_parameters = output_dir / global_param_file
+
+    print(f"out_path : {out_global_parameters}")
+    print(global_parameters["user_choices"])
+    print("/"*50)
+
     with open(out_global_parameters, "w", encoding="utf-8") as parameters_file:
         parameters_file.write(json.dumps(global_parameters, indent=3, sort_keys=True))
     out_path_parameters = output_dir / "paths_configuration.json"
@@ -169,8 +176,9 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
-    global_param_file, paths_param_file = prepare_test_dir(alcd_paths,
-                                                           alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305", "rf_otb")
+    output_dir = alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305"
+
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
     proc = subprocess.Popen(
@@ -199,8 +207,9 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
-    global_param_file, paths_param_file = prepare_test_dir(alcd_paths,
-                                                           alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305", "rf_scikit")
+    output_dir = alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305"
+
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
     proc = subprocess.Popen(
@@ -229,24 +238,59 @@ def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
-    global_param_file, paths_param_file = prepare_test_dir(alcd_paths,
-                                                           alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305", "rf_scikit")
+    output_dir = alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305"
+    # os.makedirs(output_dir, exist_ok=True)
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit","global_parameters_user_prim.json")
 
-    cmd1 = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
+    # shutil.rmtree(op.join(alcd_paths.data_dir, "s2/Toulouse_31TCJ_20240305"))
+    input('stop2')
+    cmd1 = f"python {alcd_paths.project_dir}/all_run_alcd.py -force True -f True  -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
+    proc1 = subprocess.Popen(cmd1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _ = proc1.communicate()
+    assert proc1.returncode == 0, out.decode('utf-8')
+    input('stop3')
+
+    shutil.copytree(alcd_paths.s2_data / "Toulouse_31TCJ_20240305" / "In_data" / "Image", output_dir / "In_data" / "Image", dirs_exist_ok=True)
+    # shutil.rmtree(output_dir / "Samples")
+    # shutil.copytree(alcd_paths.reference_run / "Samples_prim_user", output_dir / "Samples", dirs_exist_ok=True  )
+
+    input('stop4')
     cmd2 = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-    proc = subprocess.Popen(
-        cmd1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    proc = subprocess.Popen(
-        cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-    )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
+    proc2 = subprocess.Popen(cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(cmd2)
+    out, _ = proc2.communicate()
+    assert proc2.returncode == 0, out.decode('utf-8')
+    input('stop5')
+
+    # shutil.rmtree(output_dir / "Samples")
+    # shutil.copytree(alcd_paths.reference_run / "Samples_prim_user", output_dir / "Samples", dirs_exist_ok=True)
+
+    # connex = sqlite3.connect("tests/data/test_user_prim_alcd/Toulouse_31TCJ_20240305/Samples/training_samples_extracted.sqlite")
+    # train_data = pd.read_sql_query("SELECT * FROM output", connex)
+    # features_API = list(train_data.columns)[:7]
+    #
+    # columns_to_drop = ['band_7', 'band_8','band_9']
+    # train_data = train_data.drop(columns=columns_to_drop)
+    #
+    # # Save the modified DataFrame back into the SQLite database
+    # # First, clear the 'output' table (or drop it and recreate it)
+    # cursor = connex.cursor()
+    # cursor.execute("DROP TABLE IF EXISTS output")
+    # connex.commit()
+    #
+    # # Write the modified DataFrame as a new 'output' table
+    # train_data.to_sql('output', connex, index=False, if_exists='replace')
+    #
+    # # Close the connection
+    # connex.close()
+
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305" / "Out")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
+    input('stop6')
 
     check_expected_features_content_alcd(alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305")
+
 
 def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
     """
@@ -263,8 +307,10 @@ def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
-    global_param_file, paths_param_file = prepare_test_dir(alcd_paths,
-                                                           alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305", "rf_otb")
+    output_dir = alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305"
+    shutil.copytree(alcd_paths.reference_run, output_dir, dirs_exist_ok=True)
+
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -force True -f 1 -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
 
@@ -292,8 +338,10 @@ def test_quicklook(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the quicklook generation process fails (i.e., returns a non-zero exit code).
     """
+    output_dir = alcd_paths.data_dir / "test_quicklooks" / "Toulouse_31TCJ_20240305"
+    shutil.copytree(alcd_paths.reference_run, output_dir, dirs_exist_ok=True)
 
-    _, paths_param_file = prepare_test_dir(alcd_paths, alcd_paths.data_dir / "test_quicklooks" / "Toulouse_31TCJ_20240305", "rf_otb")
+    global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
     cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {paths_param_file}"
 

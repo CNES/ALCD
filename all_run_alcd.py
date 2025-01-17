@@ -106,6 +106,7 @@ def invitation_to_copy(global_parameters, first_iteration=False):
     print('Use the commands below on your local machine: \n')
     if first_iteration == True:
         source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
+
     else:
         source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'Out')
 
@@ -160,9 +161,11 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                               ["main_dir"], 'In_data', 'used_global_parameters.json')
                 shutil.copyfile(src, dst)
 
+                print("la")
                 # Create the images .tif and .jp2, i.e. the features
                 L1C_band_composition.create_image_compositions(
                     global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
+                print("ici")
 
                 # Create the empty layers
                 layers_creation.create_all_classes_empty_layers(global_parameters, force=force)

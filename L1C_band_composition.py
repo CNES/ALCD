@@ -383,6 +383,7 @@ def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str,
     new_bands_list = list(users_arr.coords['band'].values)
 
     n_bands, height, width = users_arr.shape
+    print(n_bands)
     # Save user's xarray on disk
     with rasterio.open(user_path, 'w', driver='GTiff', height=height, width=width,
                        count=n_bands, dtype=out_arr.dtype, crs=out_arr.rio.crs,
@@ -393,6 +394,7 @@ def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str,
     #Update the band description txt file
     with open(band_descr, 'w') as f:
         for b in range(len(new_bands_list)) :
+            print(f"B{b + 1} : {new_bands_list[b]}\n")
             f.write(f"B{b + 1} : {new_bands_list[b]}\n")
 
     return users_arr
@@ -402,6 +404,7 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                   'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
+    print(global_parameters["user_choices"]["main_dir"])
     if op.exists(potential_final_tif) and force == False:
         print('TIF already present, use -force to erase and replace')
         return
@@ -482,7 +485,8 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
 
     out_all_bands_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
-
+    print(out_all_bands_tif)
+    input('iciiii')
     # add all the additional bands after the ones of the cloudy dates
     intermediate_sizes_paths.extend(additional_bands)
     intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
@@ -530,13 +534,15 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
-    user_process(raw_img = out_all_bands_tif,
+
+    if "user_module" in list(global_parameters["user_choices"].keys()) :
+        print("ENTERED"*20)
+        user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
                  module_path = global_parameters["user_choices"]["user_module"],
                  fct_name = global_parameters["user_choices"]["user_function"],
                  location = global_parameters["user_choices"]["location"],
                  user_path = out_all_bands_tif)
-
     return
 
 
