@@ -105,7 +105,7 @@
       "training_proportion": "0.9"
    },
    "user_choices": {
-      "user_module" : "/home/ecadaux/Documents/work/ALCD/users_function.py",
+      "user_module" : "users_function.py",
       "user_function" : "my_process",
       "clear_date": "20240120",
       "current_date": "20240305",
