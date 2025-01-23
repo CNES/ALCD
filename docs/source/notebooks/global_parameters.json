@@ -1,6 +1,6 @@
 {
    "classification": {
-      "method": "rf"
+      "method": "rf_otb"
    },
    "color_tables": {
       "otb": "color_table.txt"
