@@ -145,10 +145,10 @@ def prepare_test_dir(alcd_paths: ALCDTestsData, output_dir : str, method : str, 
     global_parameters["user_choices"]["main_dir"] = str(output_dir)
     global_parameters["classification"]["method"] = str(method)
 
-    # global_parameters["user_choices"]["user_module"] = str(alcd_paths.data_dir)+ global_parameters["user_choices"]["user_module"]
+    if "user_prim" in global_param_file :
+        global_parameters["user_choices"]["user_module"] = str(alcd_paths.data_dir / "users_function.py")
 
     out_global_parameters = output_dir / global_param_file
-
     with open(out_global_parameters, "w", encoding="utf-8") as parameters_file:
         parameters_file.write(json.dumps(global_parameters, indent=3, sort_keys=True))
     out_path_parameters = output_dir / "paths_configuration.json"
@@ -234,6 +234,9 @@ def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
     AssertionError
         If the ALCD process fails (i.e., returns a non-zero exit code).
     """
+    if op.exists(alcd_paths.data_dir / "s2/Toulouse_31TCJ_20240305"):
+        shutil.rmtree(alcd_paths.data_dir / "s2/Toulouse_31TCJ_20240305")
+
     output_dir = alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit","global_parameters_user_prim.json")
 

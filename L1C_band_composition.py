@@ -299,7 +299,7 @@ def resize_band(in_band, out_band, pixelresX, pixelresY):
     os.system(build_warp)
 
 
-def load_module(source, module_name=None):
+def load_module(source, module_name = None):
     """
     reads file source and loads it as a module
 
@@ -311,7 +311,6 @@ def load_module(source, module_name=None):
     if module_name is None:
         alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
         symbol = "".join([secrets.choice(alphabet) for i in range(32)])
-
         module_name = "gensym_" + symbol
 
     spec = importlib.util.spec_from_file_location(module_name, source)
@@ -373,6 +372,7 @@ def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str,
         out_arr = raw_arr.assign_coords(band=bands_list)
 
     # Apply user's function
+    assert op.exists(module_path), 'The user function provided in the global_parameter\'s file does not exists'
     user_module = load_module(module_path)
 
     # Warning : user's function has to be named my_process
