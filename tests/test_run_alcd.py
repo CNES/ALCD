@@ -22,6 +22,7 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 
 import json
+import pickle
 import shutil
 import rasterio
 import sqlite3
@@ -31,6 +32,7 @@ import os.path as op
 from pathlib import Path
 
 from conftest import ALCDTestsData
+from sklearn.base import BaseEstimator
 
 
 def check_expected_quicklook_results(
@@ -82,11 +84,21 @@ def check_expected_features_alcd(
 def check_expected_features_content_alcd(
         feat_dir: Path
 ) -> None:
-    """Check expected alcd features content generation files.
+    """
+    Check expected ALCD features content generation files.
 
-    TO DO
-    ADD DOC"""
+    This function verifies that the expected feature files are correctly generated
+    in the given directory. It performs the following checks:
 
+    Args:
+        feat_dir (Path): Path to the directory containing the feature files.
+
+    Raises:
+        AssertionError: If any of the following conditions fail:
+            - Number of bands in the band description `.txt` file does not match the TIFF file.
+            - Band names in `.txt` file are incorrectly formatted.
+            - Number of bands in the SQLite database does not match the TIFF file.
+    """
     # Extract the number of bands in the user's data
     band_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands_bands.txt")
     training_samples_extracted = op.join(feat_dir,  "Samples", "training_samples_extracted_user_prim.sqlite")
@@ -190,8 +202,7 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
 
 def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
     """
-    Tests the execution of the ALCD pipeline by running the main ALCD
-    script with specific parameters.
+    Tests the execution of the ALCD pipeline by running the main ALCD script with specific parameters.
 
     Parameters
     ----------
@@ -216,7 +227,11 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305" / "Out")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
-    ###OUVRIR LE MODEL ET TESTER si c'est bien un truc SCIKIT
+
+    model_path = alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305" / "Models"
+    model = pickle.load(open(model_path / "model.rf_scikit", 'rb'))
+    assert isinstance(model, BaseEstimator), f"Expected a scikit-learn model, got {type(model)}"
+
 
 def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
     """
