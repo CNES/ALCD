@@ -3,7 +3,7 @@
 
 import os
 import os.path as op
-import ogr
+from osgeo import ogr
 import numpy as np
 from random import shuffle
 
@@ -37,7 +37,8 @@ def shuffle_two_lists(list1, list2):
     '''
     list1_shuf = []
     list2_shuf = []
-    index_shuf = range(len(list1))
+    index_shuf = list(range(len(list1)))
+
     shuffle(index_shuf)
     for i in index_shuf:
         list1_shuf.append(list1[i])
@@ -287,30 +288,4 @@ def k_split(in_shp, out_dir, K):
 
 
     inDataSource.Destroy()
-    
-    return        
-    
-    
-
-
-    
-def main():
-    shp_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/Intermediate'
-    in_shp = op.join(shp_dir, 'merged.shp')
-    
-    out_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002/kfold'
-    K = 10
-    k_split(in_shp, out_dir, K)
-    
     return
-    
-    train_shp = op.join(shp_dir, 'train_points.shp')
-    validation_shp = op.join(shp_dir, 'validation_points.shp')
-    
-    proportion = 0.7
-    split_points_sample(in_shp, train_shp, validation_shp, proportion)
-
-
-    
-if __name__ == '__main__':
-    main()        

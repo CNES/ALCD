@@ -30,7 +30,7 @@ import os.path as op
 import json
 import glob
 import otbApplication
-import gdal
+from osgeo import gdal
 from PIL import Image
 import numpy as np
 
@@ -54,8 +54,9 @@ def single_contour_from_labeled_dilatation(in_tif, out_tif, class_nb, radius=5, 
         Erosion = otbApplication.Registry.CreateApplication("BinaryMorphologicalOperation")
         Erosion.SetParameterInputImage("in", ClassExtract.GetParameterOutputImage("out"))
         Erosion.SetParameterString("filter", "erode")
-        Erosion.SetParameterInt("structype.ball.xradius", 1)
-        Erosion.SetParameterInt("structype.ball.yradius", 1)
+        Erosion.SetParameterString("structype", "ball")
+        Erosion.SetParameterInt("xradius", 1)
+        Erosion.SetParameterInt("yradius", 1)
         Erosion.UpdateParameters()
         Erosion.Execute()
 
@@ -67,8 +68,9 @@ def single_contour_from_labeled_dilatation(in_tif, out_tif, class_nb, radius=5, 
     else:
         Dilatation.SetParameterInputImage("in", ClassExtract.GetParameterOutputImage("out"))
     Dilatation.SetParameterString("filter", "dilate")
-    Dilatation.SetParameterInt("structype.ball.xradius", radius)
-    Dilatation.SetParameterInt("structype.ball.yradius", radius)
+    Dilatation.SetParameterString("structype", "ball")
+    Dilatation.SetParameterInt("xradius", radius)
+    Dilatation.SetParameterInt("yradius", radius)
     Dilatation.UpdateParameters()
     Dilatation.Execute()
 
@@ -170,8 +172,10 @@ def rgb_contours_stacking(in_tif, contour_label_tif, out_png):
     Stacks the contour of the labeled image on the RGB image itself
     Easier for visualisation
     '''
+
     # in_tif is the bands stacking tiff
     ds = gdal.Open(in_tif)
+    nb_bands = ds.RasterCount
 
     # temporary array to get the image characteristics
     temp_array = ds.GetRasterBand(1).ReadAsArray()
@@ -180,14 +184,16 @@ def rgb_contours_stacking(in_tif, contour_label_tif, out_png):
     # select the RGB bands from tif and the thresholds above which
     # a 255 value will be assigned
     RGB_bands = [4, 3, 2]  # red, green, blue
+    if nb_bands<3:
+        RGB_bands = [1]
     RGB_thresholds = [2500, 2500, 2500]  # max thresholds
 
     # create the blank image
     rgbArray = np.zeros((image_width, image_height, 3), 'uint8')
 
     # load and rescale the different channels
-    for channel in [0, 1, 2]:
-        current_band = np.array(ds.GetRasterBand(RGB_bands[channel]).ReadAsArray())
+    for channel, band in enumerate(RGB_bands):
+        current_band = np.array(ds.GetRasterBand(band).ReadAsArray())
         current_band = np.divide(current_band, RGB_thresholds[channel]/255)
         current_band[current_band > 255] = 255.0
 
@@ -241,24 +247,3 @@ def quick_contours(main_dir=''):
     contour_superposed_png = op.join(op.dirname(labeled_tif), 'contours_superposition.png')
     rgb_contours_stacking(raw_img, contour_tif, contour_superposed_png)
     return
-
-
-def generate_all_quicks():
-    ALCD_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/'
-    # ~ ALCD_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD_Hollstein/'
-    all_dirs = glob.glob(op.join(ALCD_dir, '*_*_*'))
-    print(len(all_dirs))
-
-    for main_dir in all_dirs:
-        quick_contours(main_dir)
-
-
-def main():
-    main_dir = '/mnt/data/home/baetensl/clouds_detection_git/Data_ALCD/Arles_31TFJ_20171002'
-    #~ quick_contours(main_dir)
-    generate_all_quicks()
-    return
-
-
-if __name__ == '__main__':
-    main()

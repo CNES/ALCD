@@ -7,7 +7,7 @@ import os.path as op
 import otbApplication
 import subprocess
 import sqlite3
-import ogr
+from osgeo import ogr
 import numpy as np
 from shutil import copyfile
 

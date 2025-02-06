@@ -1,0 +1,4 @@
+pillow
+matplotlib
+pytest
+numpy==1.23.3

@@ -27,7 +27,7 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 
 import os
 import os.path as op
-import ogr
+from osgeo import ogr
 from osgeo import gdal, osr
 import json
 import otbApplication
@@ -81,7 +81,7 @@ def create_all_classes_empty_layers(global_parameters, force=False):
 
     # append from the configuration file the masks to create
     layers_to_create = []
-    for mask_name, mask_values in global_parameters["masks"].iteritems():
+    for mask_name, mask_values in global_parameters["masks"].items():
         layers_to_create.append(op.join(main_dir, 'In_data', 'Masks', mask_values["shp"]))
 
     in_tif = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
@@ -142,7 +142,7 @@ def populate_layer(in_shp, out_shp, x_coords, y_coords):
     return
 
 
-def create_no_data_shp(global_parameters, force=False):
+def create_no_data_shp(global_parameters,paths_parameters, force=False):
     '''
     Create automatically polygons overs the no_data pixels
     in both the clear and cloudy date
@@ -153,7 +153,7 @@ def create_no_data_shp(global_parameters, force=False):
     tmp_tif = op.join('tmp', 'no_data_mask_{}.tif'.format(tmp_name))
 
     # Create the temporary no data TIF
-    L1C_band_composition.create_no_data_tif(global_parameters, tmp_tif)
+    L1C_band_composition.create_no_data_tif(global_parameters,paths_parameters, tmp_tif)
 
     # polygonize the raster
     print("  Polygonization")

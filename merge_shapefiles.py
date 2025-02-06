@@ -26,7 +26,7 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
 import os.path as op
-import ogr
+from osgeo import ogr
 
 
 def merge_shapefiles(in_shp_list, class_list, out_shp):
@@ -73,13 +73,4 @@ def merge_shapefiles(in_shp_list, class_list, out_shp):
         # Close DataSource
         inDataSource.Destroy()
     outDataSource.Destroy()
-
     return
-
-
-def main():
-    mask_dir = '/mnt/data/home/baetensl/classification_clouds/Data/Full_orleans/In_data/Masks/'
-
-
-if __name__ == '__main__':
-    main()
