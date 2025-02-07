@@ -107,9 +107,9 @@
       "training_proportion": "0.9"
    },
    "user_choices": {
-      "clear_date": "XXXX",
-      "current_date": "XXXX",
-      "location": "XXXX",
+      "clear_date": "20240213",
+      "current_date": "20240213",
+      "location": "Montreux",
       "main_dir": "montreux_outputs/Montreux_32TLS_20240213",
       "raw_img": "Montreux_bands.tif",
       "tile": "XXXX"
