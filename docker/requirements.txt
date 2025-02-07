@@ -8,3 +8,4 @@ rasterio
 pytest-cov
 xarray
 rioxarray
+pydantic
