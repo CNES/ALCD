@@ -24,7 +24,6 @@ class LibSVMConfig(BaseModel):
     c: int
     opt: str
     prob: str
-    rand : int
 
 
 class BoostConfig(BaseModel):
@@ -46,7 +45,6 @@ class BoostConfig(BaseModel):
     w: int
     r: float
     m: int
-    rand : int
 
 
 class DTConfig(BaseModel):
@@ -77,7 +75,6 @@ class DTConfig(BaseModel):
     f: int
     r: str
     t: str
-    rand : int
 
 
 class GBTConfig(BaseModel):
@@ -99,7 +96,6 @@ class GBTConfig(BaseModel):
     s: str
     p: str
     max: str
-    rand : int
 
 
 class ANNConfig(BaseModel):
@@ -145,7 +141,6 @@ class ANNConfig(BaseModel):
     term: Literal["iter", "eps", "all"]
     eps: float
     iter: int
-    rand : int
 
 
 class RFConfig(BaseModel):
@@ -168,8 +163,6 @@ class RFConfig(BaseModel):
         Maximum number of trees in the forest.
     acc : float
         Sufficient accuracy (OOB error)
-    rand : int
-        Seed for random number generation, it ensures reproducibility of results.
     """
     max: int
     min: str
@@ -178,7 +171,6 @@ class RFConfig(BaseModel):
     var: str
     nbtrees: str
     acc: str
-    rand : int
 
 
 class KNNConfig(BaseModel):
@@ -189,11 +181,8 @@ class KNNConfig(BaseModel):
     ----------
     k : str
         Number of neighbors to consider.
-    rand : int
-        Seed for random number generation, it ensures reproducibility of results.
     """
     k: str
-    rand : int
 
 class SVMConfig(BaseModel):
     """

@@ -191,7 +191,7 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
 
         proceed = True
         OTB_wf.compute_samples_stats(global_parameters, proceed=True)
-        OTB_wf.select_samples(global_parameters, strategy="constant_8000", proceed=proceed)
+        OTB_wf.select_samples(global_parameters, strategy="constant_8000")
         OTB_wf.extract_samples(global_parameters, proceed=proceed)
 
     elif part == 4:

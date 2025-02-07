@@ -155,12 +155,15 @@ class TrainingParameters(BaseModel):
         Radius for regularization.
     training_proportion : float
         Proportion of the dataset to be used for training.
+    random_seed : Optional[int]
+        random seed value, default = None
     """
     Kfold: int
     dilatation_radius: int
     expansion_distance: int
     regularization_radius: int
     training_proportion: float
+    random_seed: Optional[int] = None
 
 
 class UserChoices(BaseModel):

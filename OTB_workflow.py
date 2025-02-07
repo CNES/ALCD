@@ -27,6 +27,8 @@ import os
 import os.path as op
 import json
 import sqlite3
+from typing import Optional
+
 import xarray as xr
 
 import rasterio
@@ -161,10 +163,11 @@ def get_samples_nb(class_stats):
     return nbSamples
 
 
-def select_samples(global_parameters, strategy="smallest", proceed=True):
+def select_samples(global_parameters, strategy="smallest"):
     '''
     2. Select the samples
     '''
+    seed = global_parameters["training_parameters"]["random_seed"]
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
@@ -185,6 +188,8 @@ def select_samples(global_parameters, strategy="smallest", proceed=True):
     SampleSelection.SetParameterString("in", str(raw_img))
     SampleSelection.SetParameterString("vec", str(training_shp))
     SampleSelection.SetParameterString("mask", str(no_data_mask))
+    if seed is not None:
+        SampleSelection.SetParameterString("rand", str(seed))
     SampleSelection.SetParameterString("instats", str(class_stats))
     SampleSelection.SetParameterString("out", str(training_samples_location))
     SampleSelection.SetParameterString("outrates", str(rates))
@@ -236,7 +241,7 @@ def extract_samples(global_parameters, proceed=True):
 
 # -------- 2. MODEL TRAINING ---------------------
 
-def otb_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : bool):
+def otb_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : bool, random_seed:Optional[int]=None):
     connex = sqlite3.connect(str(training_samples_extracted))
     train_data = pd.read_sql_query("SELECT * FROM output", connex)
     features_API = list(train_data.columns)[4:]
@@ -249,7 +254,8 @@ def otb_train(training_samples_extracted : str, method : str, model_parameters :
         # can be run through the API or through the shell
         command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
             training_samples_extracted, "class", model_out, otb_method[method], str(features))
-
+        if random_seed:
+            command = f"{command} -rand {random_seed}"
         model_options = ''
         for key, value in model_parameters[method].items():
             model_options = model_options + ' -classifier.{}.{} {}'.format(otb_method[method], key, value)
@@ -267,9 +273,10 @@ def otb_train(training_samples_extracted : str, method : str, model_parameters :
         TrainVectorClassifier.SetParameterString("io.out", str(model_out))
         TrainVectorClassifier.UpdateParameters()  # Update here, otherwise features wont be recognized
         TrainVectorClassifier.SetParameterStringList("feat", features_API)
+        if random_seed is not None:
+            TrainVectorClassifier.SetParameterString("rand", str(random_seed))
+
         TrainVectorClassifier.SetParameterString("classifier", otb_method[method])
-        TrainVectorClassifier.SetParameterString("rand", str(model_parameters[method]["rand"]))
-        del model_parameters[method]["rand"]
 
         for key, value in model_parameters[method].items():
             TrainVectorClassifier.SetParameterString(
@@ -321,7 +328,7 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     if proceed == True:
         print("  Train Vector Classifier")
         if "otb" in method :
-            otb_train(**kwargs)
+            otb_train(random_seed=global_parameters["training_parameters"]["random_seed"], **kwargs)
         else:
             assert "scikit" in method
             scikit_train(**kwargs)
