@@ -167,11 +167,6 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                 # Fill automatically the no_data layer from the L1C missing
                 # pixels
                 layers_creation.create_no_data_shp(global_parameters,paths_parameters, force=force)
-
-    if part == 1:
-        # Copy them to local machine
-        invitation_to_copy(global_parameters, first_iteration)
-
     # ----------------------------------------------
     # WAIT FOR USER MODIFICATION OF THE LAYERS IN LOCAL
     # ----------------------------------------------
