@@ -26,12 +26,28 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 import os
 import os.path as op
 import json
+import sqlite3
+from typing import Optional
+
+import xarray as xr
+
+import rasterio
+import rioxarray
+import pandas as pd
+
 import otbApplication
+import numpy as np
 import csv
 import subprocess
+import pickle
 import xml.etree.ElementTree as ET
+from sklearn import svm
 import contour_from_labeled
 import confidence_map_exploitation
+import sklearn.ensemble as sk
+
+from alcd_params.params_reader import read_global_parameters
+
 
 # -------- 0. DIRECTORIES CREATION---------------------
 
@@ -147,10 +163,11 @@ def get_samples_nb(class_stats):
     return nbSamples
 
 
-def select_samples(global_parameters, strategy="smallest", proceed=True):
+def select_samples(global_parameters, strategy="smallest"):
     '''
     2. Select the samples
     '''
+    seed = global_parameters["training_parameters"]["random_seed"]
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
@@ -171,6 +188,8 @@ def select_samples(global_parameters, strategy="smallest", proceed=True):
     SampleSelection.SetParameterString("in", str(raw_img))
     SampleSelection.SetParameterString("vec", str(training_shp))
     SampleSelection.SetParameterString("mask", str(no_data_mask))
+    if seed is not None:
+        SampleSelection.SetParameterString("rand", str(seed))
     SampleSelection.SetParameterString("instats", str(class_stats))
     SampleSelection.SetParameterString("out", str(training_samples_location))
     SampleSelection.SetParameterString("outrates", str(rates))
@@ -222,6 +241,75 @@ def extract_samples(global_parameters, proceed=True):
 
 # -------- 2. MODEL TRAINING ---------------------
 
+def otb_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : bool, random_seed:Optional[int]=None):
+    connex = sqlite3.connect(str(training_samples_extracted))
+    train_data = pd.read_sql_query("SELECT * FROM output", connex)
+    features_API = list(train_data.columns)[4:]
+
+    if shell == True:
+        features = ' '.join(features_API)
+
+        otb_method = {"rf_otb" : "rf", "svm_otb" : "libsvm", "boost_otb" : "boost", "dt_otb" : "dt", "gbt_otb" : "gbt", "knn_otb" : "knn"}
+
+        # can be run through the API or through the shell
+        command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
+            training_samples_extracted, "class", model_out, otb_method[method], str(features))
+        if random_seed:
+            command = f"{command} -rand {random_seed}"
+        model_options = ''
+        for key, value in model_parameters[method].items():
+            model_options = model_options + ' -classifier.{}.{} {}'.format(otb_method[method], key, value)
+
+        command = command + model_options
+        subprocess.call(command, shell=True)
+
+    else:
+        otb_method = {"rf_otb" : "rf", "svm_otb" : "libsvm", "boost_otb" : "boost", "dt_otb" : "dt", "gbt_otb" : "gbt", "knn_otb" : "knn"}
+
+        TrainVectorClassifier = otbApplication.Registry.CreateApplication(
+            "TrainVectorClassifier")
+        TrainVectorClassifier.SetParameterStringList("io.vd", [str(training_samples_extracted)])
+        # ~ TrainVectorClassifier.SetParameterString("io.stats", str(img_stats))
+        TrainVectorClassifier.SetParameterString("io.out", str(model_out))
+        TrainVectorClassifier.UpdateParameters()  # Update here, otherwise features wont be recognized
+        TrainVectorClassifier.SetParameterStringList("feat", features_API)
+        if random_seed is not None:
+            TrainVectorClassifier.SetParameterString("rand", str(random_seed))
+
+        TrainVectorClassifier.SetParameterString("classifier", otb_method[method])
+
+        for key, value in model_parameters[method].items():
+            TrainVectorClassifier.SetParameterString(
+                str("classifier.{}.{}".format(otb_method[method], key)), str(value))
+
+        TrainVectorClassifier.SetParameterStringList("cfield", ["class"])
+        TrainVectorClassifier.UpdateParameters()
+        TrainVectorClassifier.ExecuteAndWriteOutput()
+
+
+def scikit_train(training_samples_extracted : str, method : str, model_parameters : dict, model_out : str, shell : False):
+    if not(shell) :
+        # Read sqlite query results into a pandas DataFrame
+        connex = sqlite3.connect(str(training_samples_extracted))
+        train_data = pd.read_sql_query("SELECT * FROM output", connex)
+        features_API = list(train_data.columns)[4:]
+
+        # Split features and labels
+        x_train = train_data[features_API]
+        y_train = train_data["class"]
+
+        dict_model = {"rf_scikit" : sk.RandomForestClassifier, "svm_scikit" : svm.SVC, "ada_scikit" : sk.AdaBoostClassifier,
+                      "xtree_scikit" : sk.ExtraTreesClassifier, "grad_scikit" : sk.GradientBoostingClassifier,
+                      "hist_grad_scikit" : sk.HistGradientBoostingClassifier}
+
+        classifier = dict_model[method](**model_parameters[method])
+
+        # Train the model
+        classifier.fit(x_train, y_train)
+
+        # Save the trained model to the specified output file
+        pickle.dump(classifier, open(str(model_out), 'wb'))
+
 
 def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     '''
@@ -231,53 +319,19 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
     method = global_parameters["classification"]["method"]
     training_samples_extracted = op.join(
         main_dir, 'Samples', global_parameters["general"]["training_samples_extracted"])
-    img_stats = op.join(main_dir, 'Statistics', global_parameters["general"]["img_stats"])
 
     model_out = op.join(main_dir, 'Models', ('model.' +
                                              global_parameters["classification"]["method"]))
 
-    features = ''
-    features_API = []
-    nb_feat = get_bands_qty(img_stats)
-
-    for b in range(nb_feat):
-        features += (" band_" + str(b))
-        features_API.append("band_" + str(b))
-    features = features[1:]
-    features_API = [str(f) for f in features_API]
+    kwargs = {"training_samples_extracted" : training_samples_extracted, "method" : method, "model_parameters" : model_parameters, "model_out" : model_out, "shell" : shell}
 
     if proceed == True:
         print("  Train Vector Classifier")
-        if shell == True:
-            # can be run through the API or through the shell
-            command = 'otbcli_TrainVectorClassifier -io.vd {} -cfield {} -io.out {} -classifier {} -feat {}'.format(
-                training_samples_extracted, "class", model_out, method, str(features))
-
-            model_options = ''
-            for key, value in model_parameters[method].items():
-                model_options = model_options + ' -classifier.{}.{} {}'.format(method, key, value)
-
-            command = command + model_options
-            subprocess.call(command, shell=True)
-
+        if "otb" in method :
+            otb_train(random_seed=global_parameters["training_parameters"]["random_seed"], **kwargs)
         else:
-            TrainVectorClassifier = otbApplication.Registry.CreateApplication(
-                "TrainVectorClassifier")
-            TrainVectorClassifier.SetParameterStringList("io.vd", [str(training_samples_extracted)])
-            #~ TrainVectorClassifier.SetParameterString("io.stats", str(img_stats))
-            TrainVectorClassifier.SetParameterString("io.out", str(model_out))
-            TrainVectorClassifier.UpdateParameters()  # Update here, otherwise features wont be recognized
-            TrainVectorClassifier.SetParameterStringList("feat", features_API)
-            TrainVectorClassifier.SetParameterString("classifier", str(method))
-
-            for key, value in model_parameters[method].items():
-                TrainVectorClassifier.SetParameterString(
-                    str("classifier.{}.{}".format(method, key)), str(value))
-
-            TrainVectorClassifier.SetParameterStringList("cfield", ["class"])
-            TrainVectorClassifier.UpdateParameters()
-            TrainVectorClassifier.ExecuteAndWriteOutput()
-
+            assert "scikit" in method
+            scikit_train(**kwargs)
         print('Done')
     else:
         print("Training not done this time")
@@ -287,6 +341,75 @@ def train_model(global_parameters, model_parameters, shell=True, proceed=True):
 
 # -------- 3. CLASSIFICATION ---------------------
 
+
+def otb_class(raw_img : str, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
+
+    if shell == True:
+        print("  Image Classification (shell)")
+        command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
+            raw_img, model, img_labeled, confidence_map, mask_tif)
+        subprocess.call(command, shell=True)
+
+    else:
+        print("  Image Classification (API)")
+
+        ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
+        ImageClassifier.SetParameterString("in", str(raw_img))
+        ImageClassifier.SetParameterString("model", str(model))
+        ImageClassifier.SetParameterString("out", str(img_labeled))
+        ImageClassifier.SetParameterString("confmap", str(confidence_map))
+        ImageClassifier.SetParameterString("mask", str(mask_tif))
+        ImageClassifier.UpdateParameters()
+
+        ImageClassifier.ExecuteAndWriteOutput()
+
+def scikit_class(raw_img : xr.DataArray, model : str, img_labeled : str, confidence_map : str, mask_tif : str, shell : bool):
+    if not (shell):
+        raw_arr = rioxarray.open_rasterio(raw_img)
+
+        with rasterio.open(mask_tif) as mask_src:
+            mask_data = mask_src.read(1)  # Mask is a 2D array
+
+        # Apply mask
+        masked_img = np.where(mask_data == 0, np.nan, raw_arr)
+
+        # Reshape image for classification
+        n_bands, height, width = masked_img.shape
+        X = masked_img.reshape(n_bands, -1).T  # Shape: (pixels, bands)
+
+        # Remove no-data pixels
+        valid_pixels = ~np.isnan(X).any(axis=1)
+        X_valid = X[valid_pixels]
+
+        # Load the trained model
+        model = pickle.load(open(model, 'rb'))
+
+        # Classify the data
+        predictions = model.predict(X_valid)
+        probs = model.predict_proba(X_valid)
+
+        # Reconstruct the classified image
+        classified_img = np.full((height * width), np.nan)
+        classified_img[valid_pixels] = predictions
+        classified_img = classified_img.reshape(height, width)
+
+        # Reconstruct the confidence map
+        confidence = np.full((height * width), np.nan)
+        confidence[valid_pixels] = np.max(probs, axis=1)  # Confidence = max probability
+        confidence = confidence.reshape(height, width)
+
+        # Save the classified image using rasterio
+        with rasterio.open(img_labeled, 'w', driver='GTiff', height=height, width=width,
+                           count=1, dtype=classified_img.dtype, crs=raw_arr.rio.crs, transform=raw_arr.rio.transform()) as dst:
+            dst.write(classified_img, 1)
+
+        # Save the confidence map using rasterio
+        with rasterio.open(confidence_map, 'w', driver='GTiff', height=height, width=width,
+                           count=1, dtype=confidence.dtype, crs=raw_arr.rio.crs, transform=raw_arr.rio.transform()) as dst:
+            dst.write(confidence, 1)
+
+
+
 def image_classification(global_parameters, shell=True, proceed=True, additional_name=''):
     '''
     6. Classification on the image
@@ -294,6 +417,7 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     main_dir = global_parameters["user_choices"]["main_dir"]
     raw_img = op.join(main_dir, 'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
+    method = global_parameters["classification"]["method"]
     model = op.join(main_dir, 'Models', ('model.'+global_parameters["classification"]["method"]))
 
     img_labeled = op.join(main_dir, 'Out', global_parameters["general"]["img_labeled"])
@@ -302,24 +426,15 @@ def image_classification(global_parameters, shell=True, proceed=True, additional
     mask_shp = op.join(main_dir, 'In_data', 'Masks', global_parameters["general"]["no_data_mask"])
     mask_tif = mask_shp[0:-4] + '.tif'
 
+    kwargs = {"raw_img": raw_img, "model": model, "img_labeled": img_labeled, "confidence_map": confidence_map,
+              "mask_tif": mask_tif, "shell": shell}
+
     if proceed == True:
-        if shell == True:
-            print("  Image Classification (shell)")
-            command = 'otbcli_ImageClassifier -in {} -model {} -out {} -confmap {} -mask {}'.format(
-                raw_img, model, img_labeled, confidence_map, mask_tif)
-            subprocess.call(command, shell=True)
-
-        else:
-            print("  Image Classification (API)")
-            ImageClassifier = otbApplication.Registry.CreateApplication("ImageClassifier")
-            ImageClassifier.SetParameterString("in", str(raw_img))
-            ImageClassifier.SetParameterString("model", str(model))
-            ImageClassifier.SetParameterString("out", str(img_labeled))
-            ImageClassifier.SetParameterString("confmap", str(confidence_map))
-            ImageClassifier.SetParameterString("mask", str(mask_tif))
-            ImageClassifier.UpdateParameters()
-            ImageClassifier.ExecuteAndWriteOutput()
-
+        if "otb" in method :
+            otb_class(**kwargs)
+        else :
+            assert "scikit" in method
+            scikit_class(**kwargs)
         print('Done')
     else:
         print("Classification not done this time")
@@ -341,6 +456,7 @@ def confidence_map_viz(global_parameters, additional_name=''):
         confidence_map_in, confidence_map_out, median_radius=11)
 
     return
+
 # -------- 3. POST-PROCESSING ---------------------
 
 
@@ -459,7 +575,7 @@ def create_contour_from_labeled(global_parameters, proceed=True):
 
 
 def main():
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    global_parameters = read_global_parameters(op.join('parameters_files', 'global_parameters.json'))
     train_model(global_parameters, shell=False, proceed=True)
 
     return

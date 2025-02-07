@@ -1,9 +1,16 @@
 {
    "data_paths": {
-      "data_alcd": "montreux_outputs"
+      "data_alcd": "montreux_outputs",
+      "data_pcc": "/mnt/data/home/baetensl/clouds_detection_git/Data_PCC"
    },
    "global_chains_paths": {
-      "L1C": "s2"
+      "L1C": "s2",
+      "maja": "/mnt/data/SENTINEL2/L2A_MAJA",
+      "sen2cor": "/mnt/data/SENTINEL2/L2A_SEN2COR",
+      "fmask": "/mnt/data/home/baetensl/Programs/Fmask4_output",
+      "fmask3": "/mnt/data/home/baetensl/Programs/Output_fmask",
+      "DTM_input": "/mnt/data/home/baetensl/DTM/original",
+      "DTM_resized": "/mnt/data/home/baetensl/DTM/resized"
    },
    "tile_location": {
       "Montreux": "32TLS"

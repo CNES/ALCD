@@ -25,14 +25,21 @@ https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
 import os
 import os.path as op
+import sys
+
 import otbApplication
+import importlib.util
+import string
+import secrets
 import find_directory_names
 import glob
-import json
 import shutil
-import subprocess
 import tempfile
 import argparse
+import rasterio
+import rioxarray
+
+from alcd_params.params_reader import read_paths_parameters, read_global_parameters
 
 
 def create_composit_band(bands_full_paths, out_tif, resolution=60, composit_type='ND'):
@@ -260,7 +267,7 @@ def dtm_addition(location, out_band, resolution=60):
     Create the adapted Digital Terrain Model
     From the original one, change its resolution
     '''
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
+    paths_configuration = read_paths_parameters(open(op.join('parameters_files', 'paths_configuration.json')))
     tile = paths_configuration["tile_location"][location]
 
     original_DTM_dir = paths_configuration["global_chains_paths"]["DTM_input"]
@@ -293,8 +300,105 @@ def resize_band(in_band, out_band, pixelresX, pixelresY):
     os.system(build_warp)
 
 
+def load_module(source, module_name = None):
+    """
+    reads file source and loads it as a module
+
+    source : user's file to load
+    module_name : name of module to register in sys.modules
+
+    Return: loaded module
+    """
+    if module_name is None:
+        alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        symbol = "".join([secrets.choice(alphabet) for i in range(32)])
+        module_name = "gensym_" + symbol
+
+    spec = importlib.util.spec_from_file_location(module_name, source)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    return module
+
+def user_process(raw_img: str, main_dir: str, module_path : str, fct_name : str, location: str, user_path: str):
+    """
+    Process an input raster image :
+    - Rename the bands knows how to apply its process
+    - Apply the user-defined function
+    - Save the result and update band description txt file.
+
+    Parameters:
+    ----------
+    raw_img : str
+        Path to the input raster image in GeoTIFF format.
+
+    main_dir : str
+        The main directory containing project files.
+
+    fct_path : str
+        Path to the Python file containing the user's primitive.
+
+    location : str
+        A string representing the location identifier used to locate the band description file.
+
+    user_path : str
+        Path where the output raster image will be saved.
+
+    Returns:
+    -------
+    xarray.DataArray
+        The processed raster data as a xarray.DataArray.
+
+    Assumptions:
+    - The user's function accepts a xarray.DataArray and returns a modified xarray.DataArray.
+    """
+    with rioxarray.open_rasterio(raw_img) as raw_arr:
+
+        # Read .txt file with band description
+        bands_dict = {}
+        band_descr = op.join(main_dir, 'In_data', 'Image', location + "_bands_bands.txt")
+
+        # Extract each band name
+        with open(band_descr, 'r') as f:
+            for line in f:
+                band, path = line.strip().split(" : ")
+                band_name = path.split(".tif")[0].split("Intermediate/")[-1]
+                if ("_B") in band_name:
+                    band_name = band_name.split("_")[-1]
+                bands_dict[band] = band_name
+
+        # Rename xarray's bands according to the .txt file
+        bands_list = list(bands_dict.values())
+        out_arr = raw_arr.assign_coords(band=bands_list)
+
+    # Apply user's function
+    assert op.exists(module_path), 'The user function provided in the global_parameter\'s file does not exists'
+    user_module = load_module(module_path)
+
+    # Warning : user's function has to be named my_process
+    user_function = getattr(user_module, fct_name)
+    users_arr = user_function(out_arr)
+    new_bands_list = list(users_arr.coords['band'].values)
+
+    n_bands, height, width = users_arr.shape
+    print(n_bands)
+    # Save user's xarray on disk
+    with rasterio.open(user_path, 'w', driver='GTiff', height=height, width=width,
+                       count=n_bands, dtype=out_arr.dtype, crs=out_arr.rio.crs,
+                       transform=out_arr.rio.transform()) as dst:
+        for i in range(n_bands):
+            dst.write(users_arr[i], i + 1)
+
+    #Update the band description txt file
+    with open(band_descr, 'w') as f:
+        for b in range(len(new_bands_list)) :
+            print(f"B{b + 1} : {new_bands_list[b]}\n")
+            f.write(f"B{b + 1} : {new_bands_list[b]}\n")
+
+    return users_arr
+
 def create_image_compositions(global_parameters, location, paths_parameters, current_date, heavy=False, force=False):
-    #
     potential_final_tif = op.join(global_parameters["user_choices"]["main_dir"],
                                   'In_data', 'Image', global_parameters["user_choices"]["raw_img"])
 
@@ -426,6 +530,14 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
+    if "user_function" in list(global_parameters["user_choices"].keys()) and global_parameters["user_choices"]["user_function"] != None:
+        print('ENTERED')
+        user_process(raw_img = out_all_bands_tif,
+                 main_dir = global_parameters["user_choices"]["main_dir"],
+                 module_path = global_parameters["user_choices"]["user_module"],
+                 fct_name = global_parameters["user_choices"]["user_function"],
+                 location = global_parameters["user_choices"]["location"],
+                 user_path = out_all_bands_tif)
     return
 
 
@@ -473,6 +585,8 @@ def str2bool(v):
     '''
     Converts a string to a boolean
     '''
+    if isinstance(v, bool):
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -482,7 +596,7 @@ def str2bool(v):
 
 
 def main():
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    global_parameters = read_global_parameters(op.join('parameters_files', 'global_parameters.json'))
 
     out_tif = 'tmp/tmp_tif.tif'
     create_no_data_tif(global_parameters, out_tif, resolution=60)

@@ -1,9 +1,9 @@
 {
    "classification": {
-      "method": "rf"
+      "method": "rf_otb"
    },
    "color_tables": {
-      "otb": "otb_table.txt"
+      "otb": "color_tables/otb_table.txt"
    },
    "features": {
       "DTM": "True",
@@ -103,11 +103,14 @@
       "training_proportion": "0.9"
    },
    "user_choices": {
-      "clear_date": "20240120",
-      "current_date": "20240305",
-      "location": "Toulouse",
-      "main_dir": "/home/avincent/CS/projets/OTB/PLUTO/ALCD/run_alcd/inputs/s2_l1c/Toulouse_31TCJ_20240305",
-      "raw_img": "Toulouse_bands.tif",
-      "tile": "31TCJ"
+      "user_module" : "/home/ecadaux/Documents/work/ALCD/users_function.py",
+      "user_function" : "my_process",
+      "clear_date": "20231001",
+      "current_date": "20231021",
+      "location": "Geneva",
+      "main_dir": "/home/ecadaux/Documents/work/ALCD/data/Sentinel2/L1C/Geneva_31TGM_20231021",
+      "raw_img": "Geneva_bands.tif",
+      "users_img" : "Geneva_user_bands.tif",
+      "tile": "31TGM"
    }
 }

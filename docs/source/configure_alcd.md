@@ -8,12 +8,13 @@ ALCD can be configured using several configuration files
 
 ## global_parameters
 
+
 A granule is defined as a set of data specified in space and time, i.e. a location and a date. For
 example, a granule could be associated with Orleans, tile 31UDP, and the 13 th of April 2018. In
 all the environment, a date is in format YYYYMMDD (the previous date becoming 20180413).
 
 - ``classification``: classification parameters
-  - ``method``: which method is used (could be rf, svm, ...)
+  - ``method``: which method is used among : *rf_otb*, *svm_otb*, *boost_otb*,  *dt_otb*, *gbt_otb*, *knn_otb*, *rf_scikit*, *svm_scikit*, *ada_scikit*, *xtree_scikit*, *grad_scikit*, *hist_grad_scikit*. More information can be found in the [Notebook Tutorial](notebooks/montreux.ipynb#other-classification-algorithms).
 - ``general``: output names for the files. Not necessary to change anything. The different files will be referred to with their default names afterwards
 - ``local_paths``: specific to your environment. It is used if you run the ALCD on a distant machine, and want to modify the masks on your local machine with QGIS. 
                    Useful if the distant machine does not have a graphic card.
@@ -49,6 +50,15 @@ pixels
   - ``DTM`` : boolean, whether you want to use the Digital Elevation Model or not.
   - ``textures`` : boolean, whether you want to create the two texture features (coefficient
   of variation and contours density are available for the moment).
+- ``user_choices``: Data location
+  - ``user_module`` : path to the Python file containing the user's process, if wanted. For more information, see the [Notebook Tutorial](notebooks/montreux.ipynb#user-features).
+  - ``user_function`` : name of the feature to apply, if wanted. For more information, see the [Notebook Tutorial](notebooks/montreux.ipynb#user-features).
+  - ``clear_date``:  date of the non-cloudy image
+  - ``current_date``: date of the cloudy image
+  - ``location``: location folder
+  - ``main_dir``: main directory to store the results
+  - ``raw_img``: .tif image used for the training
+  - ``tile``: Tile reference
 
 ## paths_parameters
 
@@ -71,8 +81,7 @@ locations here.
 
 ## model_parameters
 
-Parameters  are directly referring to the OTB ones, and you can therefore see the [OTB documenta-
-tion](https://www.orfeo-toolbox.org/CookBook/Applications/app_TrainVectorClassifier.html) for this purpose.
+Parameters are directly referring to the OTB or Scikit-learn ones. You can therefore see the [OTB documentation](https://www.orfeo-toolbox.org/CookBook/Applications/app_TrainVectorClassifier.html) or the [Scikit-learn documentation](https://scikit-learn.org/1.5/api/sklearn.ensemble.html) for this purpose, depending on the choosen classification algorithm.
 
 ## Input data organisation
 

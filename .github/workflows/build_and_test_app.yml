@@ -3,7 +3,7 @@ name: ALCD
 on:
   pull_request:
     branches:
-      - "master"
+      - "new_add_doc"
 
 permissions:
   contents: read
@@ -43,7 +43,6 @@ jobs:
         source /opt/otb/otbenv.profile
         sh /opt/otb/recompile_bindings.sh
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov
         if [ -f docker/requirements.txt ]; then pip install -r docker/requirements.txt; fi
     - name: pytest
       run: |

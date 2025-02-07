@@ -24,7 +24,6 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import os
 import shutil
 import os.path as op
 from osgeo import ogr, gdal
@@ -149,7 +148,7 @@ def masks_preprocess(global_parameters, k_fold_step=None, k_fold_dir=None):
     # append the classes names and numbers
     for mask_name, mask_values in global_parameters["masks"].items():
         layers_to_merge.append(op.join(main_dir, 'In_data', 'Masks', mask_values["shp"]))
-        layers_classes.append(mask_values["class"])
+        layers_classes.append(mask_values["class_name"])
 
     merged_layers = op.join(main_dir, 'Intermediate', global_parameters["general"]["merged_layers"])
 

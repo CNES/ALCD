@@ -37,6 +37,8 @@ import glob
 import otbApplication
 from matplotlib.lines import Line2D
 
+from alcd_params.params_reader import read_paths_parameters
+
 
 def get_main_directories(paths_configuration, locations, excluded):
     Data_ALCD_dir = paths_configuration["data_paths"]["data_alcd"]
@@ -199,8 +201,7 @@ def mean_confidence(confidence_tif):
 
 
 def main():
-    paths_configuration = json.load(open(op.join('parameters_files', 'paths_configuration.json')))
-    global_parameters = json.load(open(op.join('parameters_files', 'global_parameters.json')))
+    paths_configuration = read_paths_parameters(op.join('parameters_files', 'paths_configuration.json'))
 
     locations = ['Arles', 'Orleans', 'Gobabeb', 'RailroadValley',
                  'Pretoria', 'Mongu', 'Ispra', 'Marrakech']

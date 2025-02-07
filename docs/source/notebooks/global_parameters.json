@@ -1,6 +1,6 @@
 {
    "classification": {
-      "method": "rf"
+      "method": "rf_otb"
    },
    "color_tables": {
       "otb": "color_table.txt"
@@ -66,31 +66,31 @@
    },
    "masks": {
       "background": {
-         "class": "1",
+         "class_name": "1",
          "shp": "background.shp"
       },
       "clouds_shadows": {
-         "class": "4",
+         "class_name": "4",
          "shp": "clouds_shadows.shp"
       },
       "high_clouds": {
-         "class": "3",
+         "class_name": "3",
          "shp": "high_clouds.shp"
       },
       "land": {
-         "class": "5",
+         "class_name": "5",
          "shp": "land.shp"
       },
       "low_clouds": {
-         "class": "2",
+         "class_name": "2",
          "shp": "low_clouds.shp"
       },
       "snow": {
-         "class": "7",
+         "class_name": "7",
          "shp": "snow.shp"
       },
       "water": {
-         "class": "6",
+         "class_name": "6",
          "shp": "water.shp"
       }
    },
@@ -107,9 +107,9 @@
       "training_proportion": "0.9"
    },
    "user_choices": {
-      "clear_date": "XXXX",
-      "current_date": "XXXX",
-      "location": "XXXX",
+      "clear_date": "20240213",
+      "current_date": "20240213",
+      "location": "Montreux",
       "main_dir": "montreux_outputs/Montreux_32TLS_20240213",
       "raw_img": "Montreux_bands.tif",
       "tile": "XXXX"
