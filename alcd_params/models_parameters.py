@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 class LibSVMConfig(BaseModel):
     """
-    Configuration parameters for the LibSVM model.
+    Configuration parameters for the LibSVM model of OTB.
 
     Attributes
     ----------
@@ -24,11 +24,12 @@ class LibSVMConfig(BaseModel):
     c: int
     opt: str
     prob: str
+    rand : int
 
 
 class BoostConfig(BaseModel):
     """
-    Configuration parameters for the Boost model.
+    Configuration parameters for the Boost model of OTB.
 
     Attributes
     ----------
@@ -45,11 +46,12 @@ class BoostConfig(BaseModel):
     w: int
     r: float
     m: int
+    rand : int
 
 
 class DTConfig(BaseModel):
     """
-    Configuration parameters for the Decision Tree (DT) model.
+    Configuration parameters for the Decision Tree (DT) model of OTB.
 
     Attributes
     ----------
@@ -75,11 +77,12 @@ class DTConfig(BaseModel):
     f: int
     r: str
     t: str
+    rand : int
 
 
 class GBTConfig(BaseModel):
     """
-    Configuration parameters for the Gradient Boosted Trees (GBT) model.
+    Configuration parameters for the Gradient Boosted Trees (GBT) model of OTB.
 
     Attributes
     ----------
@@ -96,11 +99,12 @@ class GBTConfig(BaseModel):
     s: str
     p: str
     max: str
+    rand : int
 
 
 class ANNConfig(BaseModel):
     """
-    Configuration parameters for the Artificial Neural Network (ANN) model.
+    Configuration parameters for the Artificial Neural Network (ANN) model of OTB.
 
     Attributes
     ----------
@@ -141,11 +145,12 @@ class ANNConfig(BaseModel):
     term: Literal["iter", "eps", "all"]
     eps: float
     iter: int
+    rand : int
 
 
 class RFConfig(BaseModel):
     """
-    Configuration parameters for the Random Forest (RF) model.
+    Configuration parameters for the Random Forest (RF) model of OTB.
 
     Attributes
     ----------
@@ -163,6 +168,8 @@ class RFConfig(BaseModel):
         Maximum number of trees in the forest.
     acc : float
         Sufficient accuracy (OOB error)
+    rand : int
+        Seed for random number generation, it ensures reproducibility of results.
     """
     max: int
     min: str
@@ -171,19 +178,121 @@ class RFConfig(BaseModel):
     var: str
     nbtrees: str
     acc: str
+    rand : int
 
 
 class KNNConfig(BaseModel):
     """
-    Configuration parameters for the K-Nearest Neighbors (KNN) model.
+    Configuration parameters for the K-Nearest Neighbors (KNN) model of OTB.
 
     Attributes
     ----------
     k : str
         Number of neighbors to consider.
+    rand : int
+        Seed for random number generation, it ensures reproducibility of results.
     """
     k: str
+    rand : int
 
+class SVMConfig(BaseModel):
+    """
+    Configuration parameters for the SVM model of scikit-learn.
+
+    Attributes
+    ----------
+    kernel: str
+        kernel type for the model (among 'linear', 'poly', 'rbf', 'sigmoid', or a callable).
+    C: float
+        Regularization parameter, the strength of the regularization is inversely proportional to C.
+    probability : bool
+        Whether to enable probability estimates.
+    """
+    kernel: str
+    C: float
+    probability: bool
+
+class RFSKConfig(BaseModel):
+    """
+    Configuration parameters for the Random Forest model of scikit-learn.
+
+    Attributes
+    ----------
+    n_estimators : int
+        The number of trees in the forest, more trees can improve performance but increase computation time.
+    max_depth : int
+        The maximum depth of each tree, it limits the growth of the trees to prevent overfitting.
+    random_state : int
+        Controls the randomness of the bootstrapping of samples used when building trees.
+    min_samples_split : int
+        The minimum number of samples required to split an internal node.
+    """
+    n_estimators: int
+    max_depth: int
+    random_state: int
+    min_samples_split: int
+
+class ADAConfig(BaseModel):
+    """
+    Configuration parameters for the AdaBoostClassifier of scikit-learn.
+
+    Attributes
+    ----------
+    n_estimators: int
+        The maximum number of estimators at which boosting is terminated.
+    learning_rate : float
+        The contribution of each classifier at each boosting iteration.
+    random_state : int
+        Controls the randomness of the algorithm and ensures reproducibility of results.
+    """
+    n_estimators: int
+    learning_rate: float
+    random_state: int
+
+class XTREEConfig(BaseModel):
+    """
+    Configuration parameters for the ExtraTreesClassifier of scikit-learn.
+
+    Attributes
+    ----------
+    n_estimators : int
+        The number of trees in the forest. More trees can improve performance but increase computation time.
+    criterion : str
+        The function to measure the quality of a split.
+    random_state : int
+        Controls the randomness of the estimator and ensures reproducibility when the same value is used.
+    """
+    n_estimators : int
+    criterion : str
+    random_state : int
+
+class GRADConfig(BaseModel):
+    """
+    Configuration parameters for the GradientBoostingClassifier of scikit-learn.
+
+    Attributes
+    ----------
+    loss: str
+        The loss function to be optimized (default = log_loss).
+    n_estimators: int
+        The number of boosting stages to perform.
+    """
+    loss: str
+    n_estimators: int
+
+class HISTConfig(BaseModel):
+    """
+    Configuration parameters for the HistGradientBoostingClassifier of scikit-learn.
+
+    Attributes
+    ----------
+    loss : str
+        The loss function to use in the boosting process.
+    max_iter: int
+        The maximum number of iterations of the boosting process, i.e. the maximum number of trees for binary classification.
+    """
+    loss : str
+    max_iter: int
 
 class MLConfig(BaseModel):
     """
@@ -191,25 +300,43 @@ class MLConfig(BaseModel):
 
     Attributes
     ----------
-    libsvm : LibSVMConfig
-        Configuration for the LibSVM model.
-    boost : BoostConfig
-        Configuration for the Boost model.
-    dt : DTConfig
-        Configuration for the Decision Tree model.
-    gbt : GBTConfig
-        Configuration for the Gradient Boosted Trees model.
-    ann : ANNConfig
-        Configuration for the Artificial Neural Network model.
-    rf : RFConfig
-        Configuration for the Random Forest model.
-    knn : KNNConfig
-        Configuration for the K-Nearest Neighbors model.
+    svm_otb : LibSVMConfig
+        Configuration for the LibSVM model of OTB.
+    boost_otb : BoostConfig
+        Configuration for the Boost model of OTB.
+    dt_otb : DTConfig
+        Configuration for the Decision Tree model of OTB.
+    gbt_otb : GBTConfig
+        Configuration for the Gradient Boosted Trees model of OTB.
+    ann_otb : ANNConfig
+        Configuration for the Artificial Neural Network model of OTB.
+    rf_otb : RFConfig
+        Configuration for the Random Forest model of OTB.
+    knn_otb : KNNConfig
+        Configuration for the K-Nearest Neighbors model of OTB.
+    svm_scikit : SVMConfig
+        Configuration parameters for the SVM model of scikit-learn.
+    rf_scikit: RFSKConfig
+        Configuration parameters for the Random Forest model of scikit-learn.
+    ada_scikit: ADAConfig
+        Configuration parameters for the AdaBoostClassifier of scikit-learn.
+    xtree_scikit: XTREEConfig
+        Configuration parameters for the ExtraTreesClassifier of scikit-learn.
+    grad_scikit: GRADConfig
+        Configuration parameters for the GradientBoostingClassifier of scikit-learn.
+    hist_scikit: HISTConfig
+        Configuration parameters for the HistGradientBoostingClassifier of scikit-learn.
     """
-    libsvm: Optional[LibSVMConfig] = None
-    boost: Optional[BoostConfig] = None
-    dt: Optional[DTConfig] = None
-    gbt: Optional[GBTConfig] = None
-    ann: Optional[ANNConfig] = None
-    rf: Optional[RFConfig] = None
-    knn: Optional[KNNConfig] = None
+    svm_otb: Optional[LibSVMConfig] = None
+    boost_otb: Optional[BoostConfig] = None
+    dt_otb: Optional[DTConfig] = None
+    gbt_otb: Optional[GBTConfig] = None
+    ann_otb: Optional[ANNConfig] = None
+    rf_otb: Optional[RFConfig] = None
+    knn_otb: Optional[KNNConfig] = None
+    svm_scikit: Optional[SVMConfig] = None
+    rf_scikit: Optional[RFSKConfig] = None
+    ada_scikit: Optional[ADAConfig] = None
+    xtree_scikit: Optional[XTREEConfig] = None
+    grad_scikit: Optional[GRADConfig] = None
+    hist_scikit: Optional[HISTConfig] = None

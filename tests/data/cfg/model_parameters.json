@@ -50,7 +50,8 @@
 		"m" : "csvc",
 		"c" : "1",
 		"opt" : "false",
-		"prob" : "false"
+		"prob" : "false",
+		"rand":"42"
 	},
 
 	"svm_scikit" : {
@@ -63,7 +64,8 @@
 		"t":"real",
 		"w" : "100",
 		"r" : "0.95",
-		"m" : "1"
+		"m" : "1",
+		"rand":"42"
 	},
 
    	"dt_otb" : {
@@ -71,8 +73,10 @@
 		"min" : "10",
 		"ra" : "0.01",
 		"cat" : "10",
+		"f" : "5",
 		"r" : "false",
-		"t" : "false"
+		"t" : "false",
+		"rand":"42"
 	},
 
    	"ann_otb" : {
@@ -87,7 +91,8 @@
 		"rdwm" : "1e-07",
 		"term" : "all",
 		"eps" : "0.01",
-		"iter" : "1000"
+		"iter" : "1000",
+		"rand":"42"
 	},
 
    	"rf_otb" : {
@@ -97,7 +102,8 @@
 		"cat" : "10",
 		"var" : "0",
 		"nbtrees":"100",
-		"acc" : "0.01"
+		"acc" : "0.01",
+		"rand":"42"
 	},
 
 	"rf_scikit" : {
@@ -108,7 +114,8 @@
 	},
 
    	"knn_otb" : {
-		"k":"32"
+		"k":"32",
+		"rand":"42"
 	},
 	"ann_otb" : {
 		"t":"reg",
@@ -122,7 +129,8 @@
 		"rdwm" : "1e-07",
 		"term" : "all",
 		"eps" : "0.01",
-		"iter" : "1000"
+		"iter" : "1000",
+		"rand":"42"
 	},
 
 	"ada_scikit" : {

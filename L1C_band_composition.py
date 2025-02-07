@@ -530,7 +530,8 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         intermediate_sizes_paths = [str(i) for i in intermediate_sizes_paths]
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
-    if "user_function" in list(global_parameters["user_choices"].keys()) :
+    if "user_function" in list(global_parameters["user_choices"].keys()) and global_parameters["user_choices"]["user_function"] != None:
+        print('ENTERED')
         user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
                  module_path = global_parameters["user_choices"]["user_module"],

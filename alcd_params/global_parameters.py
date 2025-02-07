@@ -169,6 +169,10 @@ class UserChoices(BaseModel):
 
     Attributes
     ----------
+    user_function: Optional[str]
+        Name of the user function to apply to the image before training
+    user_module: Optional[str]
+        Path to the Python file containing the user's process
     clear_date : str
         Date in YYYYMMDD format for a clear-sky image.
     current_date : str
@@ -182,6 +186,8 @@ class UserChoices(BaseModel):
     tile : str
         Tile identifier for the region of interest.
     """
+    user_function: Optional[str] = None
+    user_module: Optional[str] = None
     clear_date: str
     current_date: str
     location: str
