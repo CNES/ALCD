@@ -1,0 +1,4 @@
+myst-nb
+sphinx-rtd-theme
+sphinx-rtd-theme
+linkify-it-py
