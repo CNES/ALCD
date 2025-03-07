@@ -1,4 +1,4 @@
-# ACLD documentation
+# ALCD documentation
 
 This is the current user manual for the Active Learning Cloud Detection (ALCD). This code produces classification ref-
 erence masks from a Sentinel-2 L1C product, and is particularly designed to detect clouds and

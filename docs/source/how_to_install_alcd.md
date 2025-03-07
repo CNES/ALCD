@@ -1,6 +1,26 @@
 # ALCD Installation and Usage Guide
 
-**Note**: ALCD is currently not distributed as a Python package. To use ALCD, you first need to clone the ALCD repository and then create either a Docker or Singularity image.
+**Note**: ALCD is currently not distributed as a Python package. To use ALCD, you first need to clone the ALCD repository and then create either a Docker or Singularity image or use it in a conda environment.
+
+## Solution 1 : Use a conda environment
+
+If you don't have conda installed yet, then follow the [conda install guide](https://www.anaconda.com/docs/getting-started/miniconda/install)
+
+```bash
+git clone https://github.com/CNES/ALCD.git
+cd ALCD
+conda env create -f environment.yml
+conda activate ALCD # then your are ready to use ALCD
+```
+
+## Solution 2 : Use the ALCD docker image
+
+```bash
+docker pull cnes/ALCD:latest
+docker run -it cnes/ALCD:latest
+```
+
+## Solution 3: Build your own ALCD docker image
 
 ### Step 1: Clone the ALCD Repository
 To begin, clone the ALCD repository to your local machine:
@@ -34,7 +54,7 @@ Explanation of the command options:
     -v /path/to/local/DATA:/DATA Mounts your local / /path/to/local/DATA directory to /DATA within the Docker container, allowing data access and output within this directory.
     alcd:latest: Refers to the Docker image tagged as alcd, built in step 2.
 
-### Step 3: Create the Singularity Image
+## Solution 4: Build your own ALCD singularity image
 
 Navigate to the /singularity directory within the ALCD project:
 
