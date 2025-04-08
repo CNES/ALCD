@@ -1,7 +1,6 @@
 # ALCD tutorial
 
-This is a step-by-step tutorial, to help you use the ALCD algorithm. Here, we will classify the
-clouds on the image of Arles, on the 2 nd of October, 2017.
+This is a step-by-step tutorial, to help you use the ALCD algorithm.
 The expected result is the following:
 
 
@@ -34,9 +33,9 @@ set it to 0, modify the masks, and then set it to 1.
 available samples.
 - ``dates``: boolean. If set to True, ALCD will display the available dates for the given
 location.
-- ``global_parameters``: path to json file which parametrize ALCD
-- ``paths_parameters``: path to json file which contain useful paths for ALCD
-- ``model_parameters``: path to json file which contain classifier parameters
+- ``global_parameters``: path to json file which parametrize ALCD (for more information, please see the `configuration documentation <configure_alcd.html#global-parameters>`.)
+- ``paths_parameters``: path to json file which contain useful paths for ALCD (for more information, please see the `configuration documentation <configure_alcd.html#paths-parameters>`.)
+- ``model_parameters``: path to json file which contain classifier parameters (for more information, please see the `configuration documentation <configure_alcd.html#model-parameters>`.) 
 
 
 
@@ -46,7 +45,7 @@ Before running anything, you need to set the correct paths and parameters.
 In the ``paths_configuration.json``:
 - Add the tile code linked to the location you want to add
 - Create the output directory for ALCD, and set its path in the "data_alcd" variable
-- Set the correct paths for the L1C directory and the DTM_input
+- Set the correct paths for the L1C directory and the DTM_input.
 In the global_parameters.json, if you use a distant and a local machine, set the ``local_paths`` variables accordingly.
 
 ## Step 1
@@ -55,7 +54,7 @@ A good practice is to visualise the two dates we want to use beforehand. This ca
 facilitated by the code *quicklook_generator.py*, which generates quicklooks for a given location.
 The user can therefore make sure that the cloud-free image is indeed cloud-free, and that the
 image to be classified is interesting.
-Therefore, initialize the environment by running
+Therefore, initialize the environment by running :
 
 ```bash
 python all_run_alcd.py -f True -s 0 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
@@ -76,8 +75,7 @@ The ``city_name_bands_H.tif`` bands refer to the band 2 (blue), 3 (green), 4 (re
 1375nm), the NDVI and the NDWI. The bands for the ``city_name_bands.tif`` are quite numerous,
 but the content of each band is documented in the .txt file corresponding to each .tif.
 Now, adjust the style in QGIS such that you see the image in true colors. For that, you
-can load the file ``color_tables/heavy_tif_true_colors_style.qml`` on the Heavy .tif. You
-should get :
+can load the file ``color_tables/heavy_tif_true_colors_style.qml`` on the Heavy .tif. You should get :
 
 <div style="text-align: center;">
 
@@ -271,4 +269,4 @@ classification, and with the confidence map, are given in ``Figures 11, 12 and 1
 </div>
 
 
-{doc}`water_mask <configure_alcd>`.
+
