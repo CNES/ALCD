@@ -2,3 +2,10 @@ pillow
 matplotlib
 pytest
 numpy==1.23.3
+scikit-learn
+pandas
+rasterio
+pytest-cov
+xarray
+rioxarray
+pydantic

@@ -24,12 +24,12 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import json
 import os
 import os.path as op
 import argparse
 
 import find_directory_names
+from alcd_params.params_reader import read_paths_parameters
 
 
 def create_jpg(in_jp2s, out_jpg):
@@ -61,7 +61,6 @@ def create_all_quicklook(location, out_dir, paths_parameters):
         os.makedirs(out_dir)
 
     all_dates = find_directory_names.get_all_dates(location, paths_parameters)
-    print(all_dates)
     nb_total_dates = len(all_dates)
     k = 0
     for current_date in all_dates:
@@ -80,7 +79,6 @@ def create_all_quicklook(location, out_dir, paths_parameters):
         in_jp2s = [R, G, B]
 
         out_jpg = op.join(out_dir, (location+'_'+date+'.jpg'))
-        print(out_jpg)
         create_jpg(in_jp2s, out_jpg)
 
         k += 1
@@ -96,8 +94,7 @@ def main():
 
     results = parser.parse_args()
     locations_to_parse = results.locations
-    with open(results.paths_parameters_file, "r", encoding="utf-8") as paths_parameters_file:
-        paths_parameters = json.load(paths_parameters_file)
+    paths_parameters = read_paths_parameters(results.paths_parameters_file)
     if locations_to_parse != None:
         locations = locations_to_parse.split(',')
 

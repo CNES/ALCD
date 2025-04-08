@@ -25,16 +25,12 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-
-
-import sys
 import os
 import os.path as op
 import json
 import shutil
 import argparse
 import tempfile
-import glob
 
 import OTB_workflow
 import masks_preprocessing
@@ -44,6 +40,8 @@ import OTB_workflow as OTB_wf
 import metrics_exploitation
 import find_directory_names
 import confidence_map_exploitation
+
+from alcd_params.params_reader import read_global_parameters, read_models_parameters, read_paths_parameters
 
 
 def initialization_global_parameters(main_dir, data, paths_configuration, raw_img_name, location, current_date, clear_date):
@@ -104,6 +102,7 @@ def invitation_to_copy(global_parameters, first_iteration=False):
     print('Use the commands below on your local machine: \n')
     if first_iteration == True:
         source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
+
     else:
         source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'Out')
 
@@ -121,7 +120,6 @@ def invitation_to_copy(global_parameters, first_iteration=False):
     dest_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
     print('scp -r {source} {server}{destination}'.format(server=current_server,
                                                          source=source_dir, destination=dest_dir))
-
 
 def run_all(part, global_parameters, paths_parameters, model_parameters, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
 
@@ -169,11 +167,6 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                 # Fill automatically the no_data layer from the L1C missing
                 # pixels
                 layers_creation.create_no_data_shp(global_parameters,paths_parameters, force=force)
-
-    if part == 1:
-        # Copy them to local machine
-        invitation_to_copy(global_parameters, first_iteration)
-
     # ----------------------------------------------
     # WAIT FOR USER MODIFICATION OF THE LAYERS IN LOCAL
     # ----------------------------------------------
@@ -193,7 +186,7 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
 
         proceed = True
         OTB_wf.compute_samples_stats(global_parameters, proceed=True)
-        OTB_wf.select_samples(global_parameters, strategy="constant_8000", proceed=proceed)
+        OTB_wf.select_samples(global_parameters, strategy="constant_8000")
         OTB_wf.extract_samples(global_parameters, proceed=proceed)
 
     elif part == 4:
@@ -232,6 +225,8 @@ def str2bool(v):
     '''
     Use it to change multiple pseudo-boolean values to a real boolean
     '''
+    if isinstance(v, bool):
+        return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
@@ -268,17 +263,14 @@ def main():
                         help='str, path to json file which contain classifier parameters', required=True)
     results = parser.parse_args()
     location = results.location
-    with open(results.global_parameters_file, "r", encoding="utf-8") as global_parameters_file:
-        global_parameters = json.load(global_parameters_file)
-    with open(results.paths_parameters_file, "r", encoding="utf-8") as paths_parameters_file:
-        paths_parameters = json.load(paths_parameters_file)
-    with open(results.model_parameters_file, "r", encoding="utf-8") as model_parameters_file:
-        model_parameters = json.load(model_parameters_file)
+    global_parameters = read_global_parameters(results.global_parameters_file)
+    paths_parameters = read_paths_parameters(results.paths_parameters_file)
+    model_parameters = read_models_parameters(results.model_parameters_file)
 
     global_parameters["json_file"] = results.global_parameters_file
     get_dates = str2bool(results.get_dates)
     if get_dates:
-        available_dates = find_directory_names.get_all_dates(location)
+        available_dates = find_directory_names.get_all_dates(location, paths_parameters)
         print('\nAvailable dates:\n')
         print([str(d) for d in available_dates])
         return

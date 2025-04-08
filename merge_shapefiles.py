@@ -36,6 +36,7 @@ def merge_shapefiles(in_shp_list, class_list, out_shp):
     '''
 
     for k in range(len(in_shp_list)):
+        print(in_shp_list)
         in_shp = in_shp_list[k]
         current_class = class_list[k]
 

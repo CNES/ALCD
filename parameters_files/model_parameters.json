@@ -1,4 +1,4 @@
-{    
+{
  "comments" : {
 	"-classifier":"             <string>         Classifier to use for the training [libsvm/boost/dt/gbt/ann/bayes/rf/knn] (mandatory, default value is libsvm)",
         "-classifier.libsvm.k":"    <string>         SVM Kernel Type [linear/rbf/poly/sigmoid] (mandatory, default value is linear)",
@@ -45,41 +45,43 @@
 
 },
 
-   	"libsvm" : {
+   	"svm_otb" : {
 		"k":"linear",
 		"m" : "csvc",
 		"c" : "1",
 		"opt" : "false",
-		"prob" : "false"
+		"prob" : "false",
+		"rand":"42"
 	},
 
-   	"boost" : {
+	"svm_scikit" : {
+		"kernel":"linear",
+		"C" : 1.0,
+		"probability" : true
+	},
+
+   	"boost_otb" : {
 		"t":"real",
 		"w" : "100",
 		"r" : "0.95",
-		"m" : "1"
+		"m" : "1",
+		"rand":"42"
 	},
 
-   	"dt" : {
+   	"dt_otb" : {
 		"max":"65535",
 		"min" : "10",
 		"ra" : "0.01",
 		"cat" : "10",
-		"f" : "10",
+		"f" : "5",
 		"r" : "false",
-		"t" : "false"
+		"t" : "false",
+		"rand":"42"
 	},
 
-   	"gbt" : {
-		"w":"200",
-		"s" : "0.01",
-		"p" : "0.8",
-		"max" : "3"
-	},
-
-   	"ann" : {
+   	"ann_otb" : {
 		"t":"reg",
-		"sizes" : "20",
+		"sizes" : "30",
 		"f":"sig",
 		"a" : "1",
 		"b" : "1",
@@ -89,22 +91,66 @@
 		"rdwm" : "1e-07",
 		"term" : "all",
 		"eps" : "0.01",
-		"iter" : "1000"
+		"iter" : "1000",
+		"rand":"42"
 	},
-	
-   	"rf" : {
+
+   	"rf_otb" : {
 		"max":"25",
 		"min" : "25",
 		"ra":"0",
 		"cat" : "10",
 		"var" : "0",
 		"nbtrees":"100",
-		"acc" : "0.01"
+		"acc" : "0.01",
+		"rand" : "42"
 	},
 
-   	"knn" : {
-		"k":"32"
+	"rf_scikit" : {
+		"n_estimators":100,
+		"max_depth" : 25,
+		"min_samples_split":25,
+		"random_state" : 42
+	},
+
+   	"knn_otb" : {
+		"k":"32",
+		"rand":"42"
+	},
+	"ann_otb" : {
+		"t":"reg",
+		"sizes" : "30",
+		"f":"sig",
+		"a" : "1",
+		"b" : "1",
+		"bpdw":"0.1",
+		"bpms" : "0.1",
+		"rdw":"0.1",
+		"rdwm" : "1e-07",
+		"term" : "all",
+		"eps" : "0.01",
+		"iter" : "1000",
+		"rand":"42"
+	},
+
+	"ada_scikit" : {
+		"n_estimators" : 100,
+		"learning_rate" : 1.0,
+		"random_state" : 42
+	},
+
+	"xtree_scikit" : {
+		"n_estimators" : 100,
+		"criterion" : "log_loss",
+		"random_state" : 42
+	},
+
+   	"grad_scikit" : {
+		"loss" : "log_loss",
+		"n_estimators" : 100
+	},
+	"hist_scikit" : {
+		"loss" : "log_loss",
+		"max_iter" : 100
 	}
-
-
 }

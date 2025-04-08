@@ -24,14 +24,9 @@ You should have received a copy of the GNU Lesser General Public
 License along with this program.  If not, see
 https://www.gnu.org/licenses/gpl-3.0.fr.html
 """
-import sys
-import os
 import os.path as op
-import json
 import glob
-import argparse
 import re
-import csv
 
 
 def get_all_dates(location, paths_parameters):
@@ -41,7 +36,6 @@ def get_all_dates(location, paths_parameters):
     L1C_dir = paths_parameters["global_chains_paths"]["L1C"]
     location_dir = op.join(L1C_dir, location)
     all_dates_dir = glob.glob(op.join(location_dir, 'S2*.SAFE'))
-
     dates = []
     for date_dir in all_dates_dir:
         last_dir = op.basename(op.normpath(date_dir))
