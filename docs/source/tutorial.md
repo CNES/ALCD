@@ -105,8 +105,8 @@ user add samples in these areas by mistake.
 
 ## Step 3
 
-It is now time to edit the masks layers. For each class (land, low clouds, etc), edit the corre-
-sponding layer. Add the points that you want to take as samples, by clicking on the image and
+It is now time to edit the masks layers. For each class (land, low clouds, etc), edit the corresponding 
+layer. Add the points that you want to take as samples, by clicking on the image and
 pressing Enter for each point. We have found more efficient to use points rather than polygons,
 we later dilate the points by 3 pixels assuming the neighbourhood is homogeneous in terms of
 class, so you should avoid to use a pixel just at the edge of a feature (cloud, land).
@@ -145,7 +145,7 @@ At the end, you obtain ``Figure 5``
 ## Step 4
 
 Now, copy back the edited masks to the distant machine, or skip this if you work on one machine.
-It is time to train the model, and classify the image! Do it with
+It is time to train the model, and classify the image! Do it with :
 
 ```bash
 python all_run_alcd.py -f True -s 1 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
@@ -173,7 +173,7 @@ advantage of this program: the active learning.
 
 ## Step 5
 
-Do an new iteration, by running
+Do an new iteration, by running :
 
 ```bash
 python all_run_alcd.py -f False -s 0 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
@@ -219,7 +219,7 @@ our output, as shown in ``Figure 9``.
 Do this for the areas where a misclassification is visible.
 Once the wanted points in each class have been added, you can copy back the layers to the
 distant machine with the appropriate command.
-Finally, you run once again the training and the classification with
+Finally, you run once again the training and the classification with :
 
 ```bash
 python all_run_alcd.py -f False -s 1 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
@@ -231,8 +231,8 @@ Repeat the Step 5 until you are satisfied with the classification the ALCD algor
 
 Quick tip: some data (30% by default) are used for the validation of the model, i.e. just
 to compute statistics. If you want to have more samples that you add manually to be taken
-into account for the training part, you can increase the training_proportion in the ``global_
-parameters.json``.
+into account for the training part, you can increase the training_proportion in the 
+``global_parameters.json``.
 
 Here is an example of the classification that you could obtain after each iteration. The 6th
 one is considered to be good (by myself), so you can stop there.
