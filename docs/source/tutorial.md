@@ -38,37 +38,7 @@ location.
 - ``paths_parameters``: path to json file which contain useful paths for ALCD
 - ``model_parameters``: path to json file which contain classifier parameters
 
-## Summary of the commands
 
-The detailed steps are given after this part. We give here the summary of the commands to
-use, so you can come back here if you forget how to use ALCD.
-
-See the available dates.
-
-```bash
-python all_run_alcd.py −l Arles −dates True
-```
-
-Initialisation and creation of the features.
-```bash
-python all_run_alcd.py −f True −s 0 − l Arles −d 20171002 −c 20171005
-```
-
-Edit the shapefiles to populate them with manually labeled samples. Then run the algorithm.
-```bash
-python all_run_alcd.py −f True −s 1
-```
-
-While the results are not satisfactory:
-Visualize the results. Save the current iteration.
-```bash
-python all_run_alcd.py −f False −s 0
-```
-
-Edit the shapefiles to your convenience. Run the algorithm again.
-```bash
-python all_run_alcd.py −f False −s 1
-```
 
 ## Paths preparation
 
@@ -81,29 +51,14 @@ In the global_parameters.json, if you use a distant and a local machine, set the
 
 ## Step 1
 
-First of all, you must pick the date you are interested in. As the code will run on the L1C
-product, you can list all the available dates with the command
-
-```bash
-python all_run_alcd.py −l Arles −dates True
-```
-
-You should get a list like
-
-```python
-["20151202" , "20151230" ,... , "20180319" , "20180321"]
-```
-
-A good practice is to visualise the two dates we want to use beforehand. This can be facil-
-itated by the code quicklook_generator.py, which generates quicklooks for a given location.
+A good practice is to visualise the two dates we want to use beforehand. This can be 
+facilitated by the code *quicklook_generator.py*, which generates quicklooks for a given location.
 The user can therefore make sure that the cloud-free image is indeed cloud-free, and that the
 image to be classified is interesting.
-As stated above, the date we will use here is 20171002. This date was acquired just before
-a cloud free date: 20171005.
 Therefore, initialize the environment by running
 
 ```bash
-python all_run_alcd.py −f True −s 0 − l Arles −d 20171002 −c 20171005
+python all_run_alcd.py -f True -s 0 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
 ```
 
 This will create the concatenated .tif with all the bands, and empty shapefiles for each class,
@@ -115,10 +70,10 @@ Step 2.
 
 ## Step 2
 
-You can now open QGIS. Open the raster ``In_data/Image/Arles_bands_H.tif`` (H stands for
-Heavy, as it is in full resolution of 20m per pixel), and ``In_data/Image/Arles_bands.tif``.
-The ``Arles_bands_H.tif`` bands refer to the band 2 (blue), 3 (green), 4 (red), 10 (the band at
-1375nm), the NDVI and the NDWI. The bands for the ``Arles_bands.tif`` are quite numerous,
+You can now open QGIS. Open the raster ``In_data/Image/city_name_bands_H.tif`` (H stands for
+Heavy, as it is in full resolution of 20m per pixel), and ``In_data/Image/city_name_bands.tif``.
+The ``city_name_bands_H.tif`` bands refer to the band 2 (blue), 3 (green), 4 (red), 10 (the band at
+1375nm), the NDVI and the NDWI. The bands for the ``city_name_bands.tif`` are quite numerous,
 but the content of each band is documented in the .txt file corresponding to each .tif.
 Now, adjust the style in QGIS such that you see the image in true colors. For that, you
 can load the file ``color_tables/heavy_tif_true_colors_style.qml`` on the Heavy .tif. You
@@ -132,7 +87,7 @@ should get :
 </div>
 
 Now, load all the empty shapefiles from the directory ``In_data/Masks``.
-If you display a band being a time difference (for example the 20th band of ``Arles_bands.
+If you display a band being a time difference (for example the 20th band of ``city_name_bands.
 tif``), you will observe that there was no data on the bottom-right corner for the clear date.
 The same is true with the top-left corner for the cloudy date.
 Thus, the no_data file already has some data (which is the case if one or both of the original
@@ -195,7 +150,7 @@ Now, copy back the edited masks to the distant machine, or skip this if you work
 It is time to train the model, and classify the image! Do it with
 
 ```bash
-python all_run_alcd.py −f True −s 1
+python all_run_alcd.py -f True -s 1 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
 ```
 
 The results can be seen in the Out directory. The regularized classification map is labeled_
@@ -223,7 +178,7 @@ advantage of this program: the active learning.
 Do an new iteration, by running
 
 ```bash
-python all_run_alcd.py −f False −s 0
+python all_run_alcd.py -f False -s 0 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
 ```
 
 It will save the previous iteration, and you can now edit the class layers, by adding new
@@ -269,7 +224,7 @@ distant machine with the appropriate command.
 Finally, you run once again the training and the classification with
 
 ```bash
-python all_run_alcd.py −f False −s 1
+python all_run_alcd.py -f False -s 1 -l city_name_dir -d cloudy_date -c clear_date -kfold False -global_parameters path_of_global_parameters.json -paths_parameters path_of_paths_configuration.json -model_parameters path_of_model_parameters.json
 ```
 
 ## Step 6
@@ -281,7 +236,7 @@ to compute statistics. If you want to have more samples that you add manually to
 into account for the training part, you can increase the training_proportion in the ``global_
 parameters.json``.
 
-Here is an example of the classification that you could obtain after each iteration. The 6 th
+Here is an example of the classification that you could obtain after each iteration. The 6th
 one is considered to be good (by myself), so you can stop there.
 
 <div style="text-align: center;">
