@@ -3,7 +3,7 @@ name: ALCD
 on:
   pull_request:
     branches:
-      - "new_add_doc"
+      - "master"
 
 permissions:
   contents: read
