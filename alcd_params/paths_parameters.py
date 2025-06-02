@@ -1,5 +1,5 @@
 from pydantic import BaseModel, DirectoryPath
-from typing import Dict
+from typing import Dict, Optional
 
 
 class GlobalChainsPaths(BaseModel):
@@ -24,12 +24,12 @@ class GlobalChainsPaths(BaseModel):
         Path to the resized DTM directory.
     """
     L1C: DirectoryPath
-    maja: str
-    sen2cor: str
-    fmask: str
-    fmask3: str
-    DTM_input: str
-    DTM_resized: str
+    maja: Optional[str] = None
+    sen2cor: Optional[str] = None
+    fmask: Optional[str] = None
+    fmask3: Optional[str] = None
+    DTM_input: Optional[str] = None
+    DTM_resized: Optional[str] = None
 
 
 class DataPaths(BaseModel):
@@ -44,7 +44,7 @@ class DataPaths(BaseModel):
         Path to the PCC data directory.
     """
     data_alcd: DirectoryPath
-    data_pcc: str
+    data_pcc: Optional[str] = None
 
 
 class TileLocation(BaseModel):
