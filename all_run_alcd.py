@@ -97,30 +97,6 @@ def invitation_to_copy(global_parameters, first_iteration=False):
             shutil.rmtree(op.join(statistics_dir, 'K_fold_{}'.format(k)))
             k += 1
 
-    # If first iteration : just copy the empty files
-    print('Please copy the files to your local machine to edit them')
-    print('Use the commands below on your local machine: \n')
-    if first_iteration == True:
-        source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
-
-    else:
-        source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'Out')
-
-    dest_dir = op.join(global_parameters["local_paths"]["copy_folder"],
-                       op.basename(op.normpath(global_parameters["user_choices"]["main_dir"])))
-    current_server = global_parameters["local_paths"]["current_server"]
-    print('mkdir {destination}'.format(destination=dest_dir))
-    print('cd {destination}'.format(destination=dest_dir))
-    print('scp -r {server}{source} {destination}'.format(server=current_server,
-                                                         source=source_dir, destination=dest_dir))
-
-    # command to copy the masks files back
-    print('\n \nOnce done, copy the masks back with the command below: \n')
-    source_dir = op.join(dest_dir, 'In_data', 'Masks')
-    dest_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
-    print('scp -r {source} {server}{destination}'.format(server=current_server,
-                                                         source=source_dir, destination=dest_dir))
-
 def run_all(part, global_parameters, paths_parameters, model_parameters, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
 
     if part == 1:

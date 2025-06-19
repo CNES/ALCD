@@ -191,12 +191,12 @@ class UserChoices(BaseModel):
     """
     user_function: Optional[str] = None
     user_module: Optional[str] = None
-    clear_date: str
-    current_date: str
-    location: str
+    clear_date: Optional[str] = None
+    current_date: Optional[str] = None
+    location: Optional[str] = None
     main_dir: str
     raw_img: str
-    tile: str
+    tile: Optional[str] = None
 
     @field_validator("clear_date", "current_date")
     def parse_yyyymmdd(cls, value: str, info: ValidationInfo) -> str:
