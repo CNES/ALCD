@@ -198,11 +198,11 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
         location="Toulouse",
         wanted_date="20240305",
         clear_date="20240120",
-        first_iteration="1",
-        user_input="True",  # corresponds to -f True
-        get_dates="False",
-        force="False",
-        kfold="False"
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
     )
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305" / "Out")
@@ -234,11 +234,11 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
         location="Toulouse",
         wanted_date="20240305",
         clear_date="20240120",
-        first_iteration="1",
-        user_input="True",
-        get_dates="False",
-        force="False",
-        kfold="False"
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
     )
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305" / "Out")
@@ -278,11 +278,11 @@ def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
         location="Toulouse",
         wanted_date="20240305",
         clear_date="20240120",
-        first_iteration="0",
-        user_input="True",
-        get_dates="False",
-        force="False",
-        kfold="False"
+        first_iteration=True,
+        user_input=0,
+        get_dates=False,
+        force=True,
+        kfold=False
     )
     shutil.copytree(alcd_paths.s2_data / "Toulouse_31TCJ_20240305" / "In_data" / "Image", output_dir / "In_data" / "Image", dirs_exist_ok=True)
 
@@ -293,11 +293,11 @@ def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
         location="Toulouse",
         wanted_date="20240305",
         clear_date="20240120",
-        first_iteration="1",
-        user_input="True",
-        get_dates="False",
-        force="False",
-        kfold="False"
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
     )
 
     alcd_results, details = check_expected_alcd_results(
@@ -332,11 +332,11 @@ def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
         location="Toulouse",
         wanted_date="20240305",
         clear_date="20240120",
-        first_iteration="0",
-        user_input="1",
-        get_dates="False",
-        force="True",
-        kfold="False"
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=True,
+        kfold=False
     )
     alcd_results, details = check_expected_features_alcd(
         alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305" / "In_data" / "Image")
