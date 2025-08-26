@@ -124,25 +124,7 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                 main_dir, global_parameters, paths_parameters, raw_img_name, location, current_date, clear_date)
 
             if first_iteration == True:
-                # Create the directories
-                OTB_workflow.create_directories(global_parameters)
-
-                # Copy the global_parameters files to save it
-                src = global_parameters["json_file"]
-                dst = op.join(global_parameters["user_choices"]
-                              ["main_dir"], 'In_data', 'used_global_parameters.json')
-                shutil.copyfile(src, dst)
-
-                # Create the images .tif and .jp2, i.e. the features
-                L1C_band_composition.create_image_compositions(
-                    global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
-
-                # Create the empty layers
-                layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
-
-                # Fill automatically the no_data layer from the L1C missing
-                # pixels
-                layers_creation.create_no_data_shp(global_parameters,paths_parameters, force=force)
+                first_it_worklfow(current_date, force, global_parameters, location, paths_parameters)
     # ----------------------------------------------
     # WAIT FOR USER MODIFICATION OF THE LAYERS IN LOCAL
     # ----------------------------------------------
@@ -195,6 +177,24 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
     elif part == 6:
         # Create the contours for a better visualisation
         OTB_wf.create_contour_from_labeled(global_parameters, proceed=True)
+
+
+def first_it_worklfow(current_date, force, global_parameters, location, paths_parameters):
+    # Create the directories
+    OTB_workflow.create_directories(global_parameters)
+    # Copy the global_parameters files to save it
+    src = global_parameters["json_file"]
+    dst = op.join(global_parameters["user_choices"]
+                  ["main_dir"], 'In_data', 'used_global_parameters.json')
+    shutil.copyfile(src, dst)
+    # Create the images .tif and .jp2, i.e. the features
+    L1C_band_composition.create_image_compositions(
+        global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
+    # Create the empty layers
+    layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
+    # Fill automatically the no_data layer from the L1C missing
+    # pixels
+    layers_creation.create_no_data_shp(global_parameters, paths_parameters, force=force)
 
 
 def str2bool(v):
