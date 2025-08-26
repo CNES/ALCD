@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "master"
+      - "review_reco"
 
 permissions:
   contents: read
