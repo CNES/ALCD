@@ -26,7 +26,6 @@ import pickle
 import shutil
 import rasterio
 import sqlite3
-import subprocess
 import pandas as pd
 import os.path as op
 from pathlib import Path
