@@ -33,6 +33,8 @@ from pathlib import Path
 
 from conftest import ALCDTestsData
 from sklearn.base import BaseEstimator
+from all_run_alcd import all_run_alcd
+from quicklook_generator import quicklook_generator
 
 
 def check_expected_quicklook_results(
@@ -102,7 +104,7 @@ def check_expected_features_content_alcd(
     # Extract the number of bands in the user's data
     band_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands_bands.txt")
     training_samples_extracted = op.join(feat_dir,  "Samples", "training_samples_extracted_user_prim.sqlite")
-    
+
     tif_path = op.join(feat_dir, "In_data", "Image", "Toulouse_bands.tif")
     with rasterio.open(tif_path) as src:
         exp_nband = src.count
@@ -189,12 +191,19 @@ def test_run_alcd(alcd_paths: ALCDTestsData) -> None:
     output_dir = alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
-    cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    all_run_alcd(
+        global_parameters_file=global_param_file,
+        paths_parameters_file=paths_param_file,
+        model_parameters_file=f"{alcd_paths.cfg}/model_parameters.json",
+        location="Toulouse",
+        wanted_date="20240305",
+        clear_date="20240120",
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
     )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_run_alcd" / "Toulouse_31TCJ_20240305" / "Out")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
@@ -218,12 +227,19 @@ def test_scikit_alcd(alcd_paths: ALCDTestsData) -> None:
     output_dir = alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit")
 
-    cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    all_run_alcd(
+        global_parameters_file=global_param_file,
+        paths_parameters_file=paths_param_file,
+        model_parameters_file=f"{alcd_paths.cfg}/model_parameters.json",
+        location="Toulouse",
+        wanted_date="20240305",
+        clear_date="20240120",
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
     )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_scikit_alcd" / "Toulouse_31TCJ_20240305" / "Out")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
@@ -255,17 +271,34 @@ def test_user_prim_alcd(alcd_paths: ALCDTestsData) -> None:
     output_dir = alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_scikit","global_parameters_user_prim.json")
 
-    cmd1 = f"python {alcd_paths.project_dir}/all_run_alcd.py -force True -f True  -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-    proc1 = subprocess.Popen(cmd1, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, _ = proc1.communicate()
-    assert proc1.returncode == 0, out.decode('utf-8')
-
+    all_run_alcd(
+        global_parameters_file=global_param_file,
+        paths_parameters_file=paths_param_file,
+        model_parameters_file=f"{alcd_paths.cfg}/model_parameters.json",
+        location="Toulouse",
+        wanted_date="20240305",
+        clear_date="20240120",
+        first_iteration=True,
+        user_input=0,
+        get_dates=False,
+        force=True,
+        kfold=False
+    )
     shutil.copytree(alcd_paths.s2_data / "Toulouse_31TCJ_20240305" / "In_data" / "Image", output_dir / "In_data" / "Image", dirs_exist_ok=True)
 
-    cmd2 = f"python {alcd_paths.project_dir}/all_run_alcd.py -f True -s 1 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -force False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-    proc2 = subprocess.Popen(cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, _ = proc2.communicate()
-    assert proc2.returncode == 0, out.decode('utf-8')
+    all_run_alcd(
+        global_parameters_file=global_param_file,
+        paths_parameters_file=paths_param_file,
+        model_parameters_file=f"{alcd_paths.cfg}/model_parameters.json",
+        location="Toulouse",
+        wanted_date="20240305",
+        clear_date="20240120",
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=False,
+        kfold=False
+    )
 
     alcd_results, details = check_expected_alcd_results(
         alcd_paths.data_dir / "test_user_prim_alcd" / "Toulouse_31TCJ_20240305" / "Out")
@@ -292,13 +325,19 @@ def test_run_alcd_gen_features(alcd_paths: ALCDTestsData) -> None:
     output_dir = alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
-    cmd = f"python {alcd_paths.project_dir}/all_run_alcd.py -force True -f 1 -s 0 -l Toulouse -d 20240305 -c 20240120 -dates False -kfold False -global_parameters {global_param_file} -paths_parameters {paths_param_file} -model_parameters {alcd_paths.cfg}/model_parameters.json"
-
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    all_run_alcd(
+        global_parameters_file=global_param_file,
+        paths_parameters_file=paths_param_file,
+        model_parameters_file=f"{alcd_paths.cfg}/model_parameters.json",
+        location="Toulouse",
+        wanted_date="20240305",
+        clear_date="20240120",
+        first_iteration=True,
+        user_input=1,
+        get_dates=False,
+        force=True,
+        kfold=False
     )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
     alcd_results, details = check_expected_features_alcd(
         alcd_paths.data_dir / "test_gen_features" / "Toulouse_31TCJ_20240305" / "In_data" / "Image")
     assert alcd_results, f"some output files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
@@ -321,12 +360,9 @@ def test_quicklook(alcd_paths: ALCDTestsData) -> None:
     output_dir = alcd_paths.data_dir / "test_quicklooks" / "Toulouse_31TCJ_20240305"
     global_param_file, paths_param_file = prepare_test_dir(alcd_paths, output_dir, "rf_otb")
 
-    cmd = f"python {alcd_paths.project_dir}/quicklook_generator.py -l Toulouse -paths_parameters {paths_param_file}"
-
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    quicklook_generator(
+        locations="Toulouse",
+        paths_parameters_file=paths_param_file
     )
-    out, _ = proc.communicate()
-    assert proc.returncode == 0, out.decode('utf-8')
     quicklook_results, details = check_expected_quicklook_results(Path("tmp") / "Toulouse")
     assert quicklook_results, f"some quicklook files are missing: {', '.join(file_name for file_name, exists in details.items() if not exists)}"
