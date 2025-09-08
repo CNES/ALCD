@@ -97,30 +97,6 @@ def invitation_to_copy(global_parameters, first_iteration=False):
             shutil.rmtree(op.join(statistics_dir, 'K_fold_{}'.format(k)))
             k += 1
 
-    # If first iteration : just copy the empty files
-    print('Please copy the files to your local machine to edit them')
-    print('Use the commands below on your local machine: \n')
-    if first_iteration == True:
-        source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
-
-    else:
-        source_dir = op.join(global_parameters["user_choices"]["main_dir"], 'Out')
-
-    dest_dir = op.join(global_parameters["local_paths"]["copy_folder"],
-                       op.basename(op.normpath(global_parameters["user_choices"]["main_dir"])))
-    current_server = global_parameters["local_paths"]["current_server"]
-    print('mkdir {destination}'.format(destination=dest_dir))
-    print('cd {destination}'.format(destination=dest_dir))
-    print('scp -r {server}{source} {destination}'.format(server=current_server,
-                                                         source=source_dir, destination=dest_dir))
-
-    # command to copy the masks files back
-    print('\n \nOnce done, copy the masks back with the command below: \n')
-    source_dir = op.join(dest_dir, 'In_data', 'Masks')
-    dest_dir = op.join(global_parameters["user_choices"]["main_dir"], 'In_data')
-    print('scp -r {source} {server}{destination}'.format(server=current_server,
-                                                         source=source_dir, destination=dest_dir))
-
 def run_all(part, global_parameters, paths_parameters, model_parameters, first_iteration=False, location=None, wanted_date=None, clear_date=None, k_fold_step=None, k_fold_dir=None, force=False):
 
     if part == 1:
@@ -148,25 +124,7 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
                 main_dir, global_parameters, paths_parameters, raw_img_name, location, current_date, clear_date)
 
             if first_iteration == True:
-                # Create the directories
-                OTB_workflow.create_directories(global_parameters)
-
-                # Copy the global_parameters files to save it
-                src = global_parameters["json_file"]
-                dst = op.join(global_parameters["user_choices"]
-                              ["main_dir"], 'In_data', 'used_global_parameters.json')
-                shutil.copyfile(src, dst)
-
-                # Create the images .tif and .jp2, i.e. the features
-                L1C_band_composition.create_image_compositions(
-                    global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
-
-                # Create the empty layers
-                layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
-
-                # Fill automatically the no_data layer from the L1C missing
-                # pixels
-                layers_creation.create_no_data_shp(global_parameters,paths_parameters, force=force)
+                first_it_worklfow(current_date, force, global_parameters, location, paths_parameters)
     # ----------------------------------------------
     # WAIT FOR USER MODIFICATION OF THE LAYERS IN LOCAL
     # ----------------------------------------------
@@ -221,6 +179,24 @@ def run_all(part, global_parameters, paths_parameters, model_parameters, first_i
         OTB_wf.create_contour_from_labeled(global_parameters, proceed=True)
 
 
+def first_it_worklfow(current_date, force, global_parameters, location, paths_parameters):
+    # Create the directories
+    OTB_workflow.create_directories(global_parameters)
+    # Copy the global_parameters files to save it
+    src = global_parameters["json_file"]
+    dst = op.join(global_parameters["user_choices"]
+                  ["main_dir"], 'In_data', 'used_global_parameters.json')
+    shutil.copyfile(src, dst)
+    # Create the images .tif and .jp2, i.e. the features
+    L1C_band_composition.create_image_compositions(
+        global_parameters, location, paths_parameters, current_date, heavy=True, force=force)
+    # Create the empty layers
+    layers_creation.create_all_classes_empty_layers(global_parameters, force=force)
+    # Fill automatically the no_data layer from the L1C missing
+    # pixels
+    layers_creation.create_no_data_shp(global_parameters, paths_parameters, force=force)
+
+
 def str2bool(v):
     '''
     Use it to change multiple pseudo-boolean values to a real boolean
@@ -235,7 +211,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def main():
+def getarguments():
     # parsing from the shell
     parser = argparse.ArgumentParser()
 
@@ -262,35 +238,40 @@ def main():
     parser.add_argument('-model_parameters', dest='model_parameters_file',
                         help='str, path to json file which contain classifier parameters', required=True)
     results = parser.parse_args()
-    location = results.location
-    global_parameters = read_global_parameters(results.global_parameters_file)
-    paths_parameters = read_paths_parameters(results.paths_parameters_file)
-    model_parameters = read_models_parameters(results.model_parameters_file)
+    return vars(results)
 
-    global_parameters["json_file"] = results.global_parameters_file
-    get_dates = str2bool(results.get_dates)
+
+def all_run_alcd(global_parameters_file, paths_parameters_file, model_parameters_file, location=None,
+                 wanted_date=None, clear_date=None, first_iteration=None, user_input=None, get_dates='false',
+                 force='false', kfold='false'):
+    global_parameters = read_global_parameters(global_parameters_file)
+    paths_parameters = read_paths_parameters(paths_parameters_file)
+    model_parameters = read_models_parameters(model_parameters_file)
+
+    global_parameters["json_file"] = global_parameters_file
+    get_dates = str2bool(get_dates)
     if get_dates:
         available_dates = find_directory_names.get_all_dates(location, paths_parameters)
         print('\nAvailable dates:\n')
         print([str(d) for d in available_dates])
         return
 
-    if results.first_iteration == None:
+    if first_iteration == None:
         print('Please enter a boolean for the first iteration')
         return
     else:
-        first_iteration = str2bool(results.first_iteration)
+        first_iteration = str2bool(first_iteration)
 
-    if results.user_input == None:
+    if user_input == None:
         print('Please enter an integer for the step')
         return
     else:
-        user_input = results.user_input
+        user_input = user_input
 
-    wanted_date = results.wanted_date
-    clear_date = results.clear_date
-    force = str2bool(results.force)
-    kfold = str2bool(results.kfold)
+    wanted_date = wanted_date
+    clear_date = clear_date
+    force = str2bool(force)
+    kfold = str2bool(kfold)
 
     if kfold:
         tmp_name = next(tempfile._get_candidate_names())
@@ -343,6 +324,12 @@ def main():
     else:
         print('Please enter a valid step value [0 or 1]')
 
+def main():
+    """
+    It parses the command line arguments and calls the all_run_alcd function.
+    """
+    args = getarguments()
+    all_run_alcd(**args)
 
 if __name__ == '__main__':
     main()

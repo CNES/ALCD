@@ -419,49 +419,21 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
 
     # Create new indices if needed
     new_indices = global_parameters["features"]["special_indices"]
-    for indice in new_indices:
-        out_tif = op.join(out_dir_bands, (indice + '.tif'))
-        create_specific_indices(bands_dir, out_tif, indice_name=indice, resolution=resolution)
-        additional_bands.append(str(out_tif))
+    create_new_indices(additional_bands, bands_dir, new_indices, out_dir_bands, resolution)
 
     # Create the ratios
     ratios = create_ratio_bands(global_parameters, bands_dir, out_dir_bands, resolution=60)
     additional_bands.extend(ratios)
 
-    use_DTM = str2bool(global_parameters["features"]["DTM"])
-    if use_DTM:
-        # Append the DTM model
-        out_dtm = op.join(out_dir_bands, ('DTM.tif'))
-        # try to append it. If an error occurs, the DTM probably does not exist
-        # and we will therefore skip this band
-        try:
-            dtm_addition(location, out_dtm, resolution=resolution)
-            additional_bands.append(str(out_dtm))
-        except:
-            print('ERROR : THE DTM DOES NOT EXIST !!!')
+    use_dtm(additional_bands, global_parameters, location, out_dir_bands, resolution)
 
     create_textures = str2bool(global_parameters["features"]["textures"])
     # Create the texture features
     if create_textures:
-        band_used_for_contours = 2
-        in_tif = glob.glob(
-            op.join(bands_dir, '*{}*{:02}.jp2'.format(band_prefix, band_used_for_contours)))[0]
-        in_channel = 1
-
-        out_tif = op.join(out_dir_bands, 'density_contours.tif')
-        create_contours_density(in_tif, in_channel, out_tif, radius=3)
-        additional_bands.append(str(out_tif))
-        out_tif = op.join(out_dir_bands, 'variation_coeff.tif')
-        create_variation_coeff(in_tif, in_channel, out_tif, radius=3)
-        additional_bands.append(str(out_tif))
+        create_texture_feat(additional_bands, band_prefix, bands_dir, out_dir_bands)
 
     # Create time difference features
-    bands_num = [int(band) for band in global_parameters["features"]["time_difference_bands"]]
-    out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
-    for band_num in bands_num:
-        out_tif = op.join(out_dir_bands, ('time_' + str(band_num) + '.tif'))
-        create_time_difference_band(global_parameters, paths_parameters, band_num, out_tif, resolution=resolution)
-        additional_bands.append(str(out_tif))
+    time_diff_feat(additional_bands, global_parameters, paths_parameters, resolution)
 
     # --- Create the main TIF with low resolution
     # create intermediate resolution files
@@ -501,10 +473,7 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         new_indices = ['NDVI', 'NDWI']
         out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
         additional_bands = []
-        for indice in new_indices:
-            out_tif = op.join(out_dir_bands, (indice + '.tif'))
-            create_specific_indices(bands_dir, out_tif, indice_name=indice, resolution=resolution)
-            additional_bands.append(str(out_tif))
+        create_new_indices(additional_bands, bands_dir, new_indices, out_dir_bands, resolution)
 
         # create intermediate resolution files
         intermediate_bands_dir = op.join(
@@ -513,15 +482,8 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         pixelresY = resolution
 
         # The bands to put into the heavy file
-        bands_num = [2, 3, 4, 10]
-
-        intermediate_sizes_paths = []
-        for band in bands_num:
-            in_band = str(op.join(bands_dir, band_prefix) + '{:02d}'.format(band)+'.jp2')
-            out_band = op.join(intermediate_bands_dir, op.basename(in_band)[0:-4]+'.tif')
-
-            resize_band(in_band, out_band, pixelresX, pixelresY)
-            intermediate_sizes_paths.append(out_band)
+        intermediate_sizes_paths = put_band_heavy_tif(band_prefix, bands_dir, intermediate_bands_dir,
+                                                      intermediate_sizes_paths, pixelresX, pixelresY)
 
         out_heavy_tif = op.join(global_parameters["user_choices"]["main_dir"], 'In_data',
                                 'Image', global_parameters["user_choices"]["raw_img"])[0:-4]+'_H.tif'
@@ -531,7 +493,6 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
         compose_bands_heavy(intermediate_sizes_paths, str(out_heavy_tif))
 
     if "user_function" in list(global_parameters["user_choices"].keys()) and global_parameters["user_choices"]["user_function"] != None:
-        print('ENTERED')
         user_process(raw_img = out_all_bands_tif,
                  main_dir = global_parameters["user_choices"]["main_dir"],
                  module_path = global_parameters["user_choices"]["user_module"],
@@ -539,6 +500,61 @@ def create_image_compositions(global_parameters, location, paths_parameters, cur
                  location = global_parameters["user_choices"]["location"],
                  user_path = out_all_bands_tif)
     return
+
+
+def put_band_heavy_tif(band_prefix, bands_dir, intermediate_bands_dir, intermediate_sizes_paths, pixelresX, pixelresY):
+    bands_num = [2, 3, 4, 10]
+    intermediate_sizes_paths = []
+    for band in bands_num:
+        in_band = str(op.join(bands_dir, band_prefix) + '{:02d}'.format(band) + '.jp2')
+        out_band = op.join(intermediate_bands_dir, op.basename(in_band)[0:-4] + '.tif')
+
+        resize_band(in_band, out_band, pixelresX, pixelresY)
+        intermediate_sizes_paths.append(out_band)
+    return intermediate_sizes_paths
+
+
+def create_new_indices(additional_bands, bands_dir, new_indices, out_dir_bands, resolution):
+    for indice in new_indices:
+        out_tif = op.join(out_dir_bands, (indice + '.tif'))
+        create_specific_indices(bands_dir, out_tif, indice_name=indice, resolution=resolution)
+        additional_bands.append(str(out_tif))
+
+
+def time_diff_feat(additional_bands, global_parameters, paths_parameters, resolution):
+    bands_num = [int(band) for band in global_parameters["features"]["time_difference_bands"]]
+    out_dir_bands = op.join(global_parameters["user_choices"]["main_dir"], 'Intermediate')
+    for band_num in bands_num:
+        out_tif = op.join(out_dir_bands, ('time_' + str(band_num) + '.tif'))
+        create_time_difference_band(global_parameters, paths_parameters, band_num, out_tif, resolution=resolution)
+        additional_bands.append(str(out_tif))
+
+
+def use_dtm(additional_bands, global_parameters, location, out_dir_bands, resolution):
+    use_DTM = str2bool(global_parameters["features"]["DTM"])
+    if use_DTM:
+        # Append the DTM model
+        out_dtm = op.join(out_dir_bands, ('DTM.tif'))
+        # try to append it. If an error occurs, the DTM probably does not exist
+        # and we will therefore skip this band
+        try:
+            dtm_addition(location, out_dtm, resolution=resolution)
+            additional_bands.append(str(out_dtm))
+        except:
+            print('ERROR : THE DTM DOES NOT EXIST !!!')
+
+
+def create_texture_feat(additional_bands, band_prefix, bands_dir, out_dir_bands):
+    band_used_for_contours = 2
+    in_tif = glob.glob(
+        op.join(bands_dir, '*{}*{:02}.jp2'.format(band_prefix, band_used_for_contours)))[0]
+    in_channel = 1
+    out_tif = op.join(out_dir_bands, 'density_contours.tif')
+    create_contours_density(in_tif, in_channel, out_tif, radius=3)
+    additional_bands.append(str(out_tif))
+    out_tif = op.join(out_dir_bands, 'variation_coeff.tif')
+    create_variation_coeff(in_tif, in_channel, out_tif, radius=3)
+    additional_bands.append(str(out_tif))
 
 
 def create_no_data_tif(global_parameters, paths_parameters, out_tif, dilation_radius=10):

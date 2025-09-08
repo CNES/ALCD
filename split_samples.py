@@ -133,36 +133,38 @@ def split_points_sample(in_shp, train_shp, validation_shp, proportion, proportio
             else:
                 print('FID {} not in any list'.format(current_FID))
 
-    
-    
     elif proportion_type == 'global':
         # the proportion will be respected for the set of classes, i.e. 
         # a class can be not represented in the validation set 
         # Thus it is not recommended
         #Get the info of the shapefile
-        features_count = len(inLayer)
-        train_list, validation_list = get_random_splitting_lists(features_count, proportion)
-        print('{} training points will be taken'.format(len(train_list)))
-        print('{} validation points will be taken'.format(len(validation_list)))
-        
-        # Create the feature and set values
-        k = 0
-        for point in inLayer:
-            if k in train_list:
-                trainLayer.CreateFeature(point)
-            elif k in validation_list:
-                validationLayer.CreateFeature(point)    
-            else:
-                print('Feature {} not in any list'.format(k))
-            k+=1
+        global_proportion_type(inLayer, proportion, trainLayer, validationLayer)
 
     # Close DataSources
     inDataSource.Destroy()
     trainDataSource.Destroy()    
     validationDataSource.Destroy()    
     
-    return    
-    
+    return
+
+
+def global_proportion_type(inLayer, proportion, trainLayer, validationLayer):
+    features_count = len(inLayer)
+    train_list, validation_list = get_random_splitting_lists(features_count, proportion)
+    print('{} training points will be taken'.format(len(train_list)))
+    print('{} validation points will be taken'.format(len(validation_list)))
+    # Create the feature and set values
+    k = 0
+    for point in inLayer:
+        if k in train_list:
+            trainLayer.CreateFeature(point)
+        elif k in validation_list:
+            validationLayer.CreateFeature(point)
+        else:
+            print('Feature {} not in any list'.format(k))
+        k += 1
+
+
 def k_split(in_shp, out_dir, K):
     '''
     Split the in_shp in K different sets
@@ -182,13 +184,9 @@ def k_split(in_shp, out_dir, K):
     srs = inLayer.GetSpatialRef()
 
     # get the field names
-    field_names = []
-    for i in range(layerDefinition.GetFieldCount()):
-        field_names.append(layerDefinition.GetFieldDefn(i).GetName())
-    
+    field_names = get_field_names(layerDefinition)
+
     shpDriver = ogr.GetDriverByName("ESRI Shapefile")
-
-
 
     # each class will respect the proportion
     points_classes_list = []
@@ -248,8 +246,7 @@ def k_split(in_shp, out_dir, K):
         print('{} validation points will be taken'.format(len(validation_FID)))
         
         inLayer.ResetReading() # needs to be reset to be readable again
-            
-            
+
         # Remove output shapefile if it already exists
         for dire in [train_shp, validation_shp]:
             if os.path.exists(dire):
@@ -262,30 +259,36 @@ def k_split(in_shp, out_dir, K):
         validationDataSource = shpDriver.CreateDataSource(validation_shp)
         validationLayer = validationDataSource.CreateLayer("buff_layer", srs, geom_type=ogr.wkbPoint)
 
-
         # Add all the fields
-        for field_name in field_names:
-            newField = ogr.FieldDefn(field_name, ogr.OFTInteger)
-            trainLayer.CreateField(newField)
-            validationLayer.CreateField(newField)        
-            
-
-            # Create the feature and set values
-            for point in inLayer:
-                current_FID = point.GetFID()
-                if current_FID in train_FID:
-                    trainLayer.CreateFeature(point)
-                elif current_FID in validation_FID:
-                    validationLayer.CreateFeature(point)    
-                else:
-                    print('FID {} not in any list'.format(current_FID))
-
-        
+        add_all_fields(field_names, inLayer, trainLayer, train_FID, validationLayer, validation_FID)
 
         # Close DataSources
         trainDataSource.Destroy()    
         validationDataSource.Destroy()    
 
-
     inDataSource.Destroy()
     return
+
+
+def get_field_names(layerDefinition):
+    field_names = []
+    for i in range(layerDefinition.GetFieldCount()):
+        field_names.append(layerDefinition.GetFieldDefn(i).GetName())
+    return field_names
+
+
+def add_all_fields(field_names, inLayer, trainLayer, train_FID, validationLayer, validation_FID):
+    for field_name in field_names:
+        newField = ogr.FieldDefn(field_name, ogr.OFTInteger)
+        trainLayer.CreateField(newField)
+        validationLayer.CreateField(newField)
+
+        # Create the feature and set values
+        for point in inLayer:
+            current_FID = point.GetFID()
+            if current_FID in train_FID:
+                trainLayer.CreateFeature(point)
+            elif current_FID in validation_FID:
+                validationLayer.CreateFeature(point)
+            else:
+                print('FID {} not in any list'.format(current_FID))
